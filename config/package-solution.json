@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "visitor-management-system-client-side-solution",
+    "id": "538bb3b9-5aba-4d9e-a8b1-ed2b8e40f47d",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.20.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "visitor-management-system description"
+      },
+      "longDescription": {
+        "default": "visitor-management-system description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "visitor-management-system Feature",
+        "description": "The feature that activates elements of the visitor-management-system solution.",
+        "id": "171f4777-80ce-4ea3-8bc3-74a707fbfdbc",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/visitor-management-system.sppkg"
+  }
+}

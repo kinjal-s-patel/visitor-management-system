@@ -32,67 +32,53 @@ const VisitorFormPage: React.FC = () => {
     console.log('Submitted data:', formData);
   };
 
+    React.useEffect(() => {
+      const style = document.createElement("style");
+      style.innerHTML = `
+        #SuiteNavWrapper,
+        #spSiteHeader,
+        #spLeftNav,
+        .spAppBar,
+        .sp-appBar,
+        .sp-appBar-mobile,
+        div[data-automation-id="pageCommandBar"],
+        div[data-automation-id="pageHeader"],
+        div[data-automation-id="pageFooter"] {
+          display: none !important;
+          height: 0 !important;
+          overflow: hidden !important;
+        }
   
-  React.useEffect(() => {
-    const style = document.createElement("style");
-    style.innerHTML = `
-      #SuiteNavWrapper,
-      #spSiteHeader,
-      #spLeftNav,
-      .spAppBar,
-      .sp-appBar,
-      .sp-appBar-mobile,
-      div[data-automation-id="pageCommandBar"],
-      div[data-automation-id="pageHeader"],
-      div[data-automation-id="pageFooter"] {
-        display: none !important;
-        height: 0 !important;
-        overflow: hidden !important;
-      }
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 100% !important;
+          width: 100% !important;
+          overflow: hidden !important;
+          background: #fff !important;
+        }
+      
+        #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
+          width: 100vw !important;
+          height: 100vh !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          max-width: 100vw !important;
+        }
+  
+        .ms-FocusZone {
+          overflow: hidden !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }, []);
 
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        height: 100% !important;
-        width: 100% !important;
-        overflow: hidden !important;
-        background: #fff !important;
-      }
-
-      #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
-        width: 100vw !important;
-        height: 100vh !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-        max-width: 100vw !important;
-      }
-
-      .ms-FocusZone {
-        overflow: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }, []);
-
-
+    
   return (
-       <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        margin: 0,
-        padding: 0,
-        overflow: 'auto',
-        backgroundColor: '#fff',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 9999
-      }}
-    >
-     
-    <div className={styles.visitorDashboard}>
+      <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
+    <div className={styles.visitorFormPage}>
+      {/* Header */}
       <header className={styles.dashboardHeader}>
         <div className={styles.dashboardHeader__left}>
           <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
@@ -102,10 +88,17 @@ const VisitorFormPage: React.FC = () => {
         </div>
       </header>
 
-      <div className={styles.visitorDashboard__section}>
-        <h2 style={{ marginBottom: '16px' }}>Visitor Registration Form</h2>
+      <div className={styles.navButtons}>
+  <PrimaryButton text="View Visitor" onClick={() => navigate('/viewvisitor')} />
+  <PrimaryButton text="Reports" onClick={() => navigate('/reports')} />
+    <PrimaryButton text="Dashboard" onClick={() => navigate('/')} />
+</div>
 
-        <div className={styles.formContainer}>
+      {/* Main Content */}
+      <main className={styles.formContainer}>
+        <h2 className={styles.formTitle}>Visitor Registration Form</h2>
+
+        <div className={styles.formWrapper}>
           <TextField
             label="Name"
             value={formData.name}
@@ -149,21 +142,19 @@ const VisitorFormPage: React.FC = () => {
             onChange={(e, val) => handleChange('inTime', val || '')}
             required
           />
+          <div className={styles.buttonGroup}>
+  <PrimaryButton text="Submit" onClick={handleSubmit} />
+</div>
 
-          <div style={{ marginTop: '20px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <PrimaryButton text="Submit" className={styles.primary} onClick={handleSubmit} />
-            <PrimaryButton text="Back to Dashboard" className={styles.secondary} onClick={() => navigate('/')} />
-            <PrimaryButton text="View Reports" className={styles.secondary} onClick={() => navigate('/reports')} />
-          </div>
+         
         </div>
-      </div>
+      </main>
     </div>
+      <footer className={styles.footer}>
+          © 2025 Visitor Management System. All rights reserved.
+        </footer>
     </div>
   );
 };
 
 export default VisitorFormPage;
-
-
-
- 

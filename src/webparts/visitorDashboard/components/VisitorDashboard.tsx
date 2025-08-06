@@ -228,7 +228,7 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({
 
 <button
   className={`${styles.btn} ${styles.primary}`}
-  onClick={() => navigate('/new-visitor')}
+  onClick={() => navigate('/visitorlogs')}
 >
   View Visitor
 </button>
@@ -240,13 +240,6 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({
   Reports
 </button>
 
-
-<button
-  className={`${styles.btn} ${styles.secondary}`}
-  onClick={() => navigate('/')}
->
-  Reports
-</button>
 
           </div>
         </div>
@@ -300,9 +293,9 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({
           </div>
         </div>
 
-        <div className={styles.visitorDashboard__footer}>
-          <button className={`${styles.btn} ${styles.primary}`} onClick={loadAll}>Refresh</button>
-        </div>
+        <footer className={styles.footer}>
+          © 2025 Visitor Management System. All rights reserved.
+        </footer>
       </div>
   );
 };

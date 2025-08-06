@@ -4,7 +4,8 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import VisitorDashboard from './VisitorDashboard';
 import VisitorFormPage from './visitorform';
-// import ReportsPage from './ReportsPage';
+import ViewVisitors from './visitorlogs';
+import VisitorReportPage from './reports';
 
 const AppRouter = (props: any) => {
   const navigate = useNavigate(); // ✅ This gives access to the navigation function
@@ -20,10 +21,14 @@ const AppRouter = (props: any) => {
         path="/visitorform"
         element={<VisitorFormPage {...props} navigateto={navigate} />}
       />
-      {/* <Route
+      <Route
+        path="/visitorlogs"
+        element={<ViewVisitors {...props} navigateto={navigate} />}
+      />
+      <Route
         path="/reports"
-        element={<ReportsPage {...props} navigateto={navigate} />}
-      /> */}
+        element={<VisitorReportPage {...props} navigateto={navigate} />}
+      />
     </Routes>
   );
 };

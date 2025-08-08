@@ -5,7 +5,10 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import styles from './reports.module.scss';
 import { saveAs } from 'file-saver';
+import { useNavigate } from 'react-router-dom';
 import * as Papa from 'papaparse';
+import { FaBriefcase, FaBuilding } from "react-icons/fa";
+
 
 export interface IVisitorDashboardProps {
   sp: any; // or SPFI if you're using @pnp/sp properly typed
@@ -17,6 +20,7 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+   const navigate = useNavigate();
 
   useEffect(() => {
     loadVisitors();
@@ -26,15 +30,33 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
     applyFilters();
   }, [statusFilter, startDate, endDate]);
 
-  const loadVisitors = async () => {
-    try {
-      const items = await sp.web.lists.getByTitle("visitor-list").items.top(5000).get();
-      setVisitors(items);
-      setFiltered(items);
-    } catch (error) {
-      console.error("Error loading visitors:", error);
-    }
-  };
+ const loadVisitors = async () => {
+      try {
+        const items = await sp.web.lists
+          .getByTitle("visitor-list")
+          .items
+          .select(
+            "Id",
+            "name",
+            "number",
+            "purposeofvisit",
+            "email",
+            "hostname/Title",  // ✅ Only request Title from Person field
+            "Department",
+            "In_x002d_time",
+            "Outtime",
+            "status"
+        
+          )
+          .expand("hostname")
+          .orderBy("Id", false)();
+
+        setVisitors(items);
+        setFiltered(items);
+      } catch (error) {
+        console.error("❌ Error loading visitors:", error);
+      }
+    };
 
   const applyFilters = () => {
     let filteredData = [...visitors];
@@ -123,9 +145,19 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
 
     {/* NAVIGATION BUTTONS */}
     <div className={styles.navButtons}>
-      <button onClick={() => window.location.href = "/sites/yoursite/SitePages/VisitorDashboard.aspx"}>Dashboard</button>
-      <button onClick={() => window.location.href = "/sites/yoursite/SitePages/ViewVisitors.aspx"}>View Visitors</button>
-      <button onClick={() => window.location.href = "/sites/yoursite/SitePages/VisitorReport.aspx"} className={styles.active}>Reports</button>
+      <button className={styles.btn} onClick={() => navigate('/visitorform')}>
+              Add Visitor
+            </button>
+
+            <button className={styles.btn} onClick={() => navigate('/visitorlogs')}>
+              View Visitor
+            </button>
+
+            <button className={styles.btn} onClick={() => navigate('/')}>
+              Dashboard
+              </button>
+
+
     </div>
 
     {/* REPORT CONTENT */}
@@ -172,35 +204,41 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
 
       {/* Table */}
       <table className={styles.reportTable}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Host</th>
-            <th>Status</th>
-            <th>Purpose</th>
-            <th>Check-In</th>
-            <th>Check-Out</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map(visitor => (
-            <tr key={visitor.Id}>
-              <td>{visitor.VisitorName}</td>
-              <td>{visitor.Email}</td>
-              <td>{visitor.HostName}</td>
-              <td>{visitor.Status}</td>
-              <td>{visitor.Purpose}</td>
-              <td>{visitor.CheckInTime || '-'}</td>
-              <td>{visitor.CheckOutTime || '-'}</td>
-              <td>{new Date(visitor.Created).toLocaleDateString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+<thead>
+  <tr>
+    <th>Name</th>
+      <th>Email</th>
+      <th>Host</th>
+      <th>Status</th>
+      <th>Purpose</th>
+      <th>Department</th>
+      <th>Check-In</th>
+      <th>Check-Out</th>
+      <th>Date</th>
+  </tr>
+</thead>
+
+<tbody>
+  {filtered.map((visitor) => (
+      <tr key={visitor.Id}>
+        <td>{visitor.name}</td>
+        <td>{visitor.email}</td>
+        <td>{visitor.hostname?.Title || 'N/A'}</td>
+        <td>{visitor.status}</td>
+        <td><FaBriefcase /> {visitor.purposeofvisit}</td>
+        <td><FaBuilding /> {visitor.Department}</td>
+        <td>{visitor["In_x002d_time"] || "-"}</td>
+        <td>{visitor.Outtime || "-"}</td>
+        <td>{new Date(visitor.Created).toLocaleDateString()}</td>
+      </tr>
+    ))}
+</tbody>
+</table>
+</div>
   </div>
+    <footer className={styles.footer}>
+          © 2025 Visitor Management System. All rights reserved.
+        </footer>
   </div>
 );
 

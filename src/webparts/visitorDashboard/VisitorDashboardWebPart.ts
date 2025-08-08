@@ -9,7 +9,6 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
 import { NavigateFunction } from 'react-router-dom';
 
-
 import * as strings from 'VisitorDashboardWebPartStrings';
 
 import Home from './components/home';

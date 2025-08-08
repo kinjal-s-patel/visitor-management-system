@@ -1,27 +1,30 @@
- import * as React from 'react';
+import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import styles from './visitorlogs.module.scss';
+import { FaBuilding } from "react-icons/fa"; // ✅ Correct
+import { FaBriefcase } from "react-icons/fa"; // ✅ Correct
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
+
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 export interface IVisitorDashboardProps {
-  sp: any;
+  sp: any; // spfi object passed from parent
 }
 
 interface IVisitor {
   Id: number;
   name: string;
-  contactNumber: string;
+  number: string;
   purposeofvisit: string;
   email: string;
-  hostName: string;
-  department: string;
-  inTime: string;
+  hostname: { Title: string }; // ✅ Adjusted type to match Person field
+  Department: string;
+  In_x002d_time: string;
 }
 
 const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
@@ -31,16 +34,22 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
   useEffect(() => {
     const fetchVisitors = async () => {
       try {
-        const items = await sp.web.lists.getByTitle("visitor-list").items.select(
-          "Id",
-          "name",
-          "contactNumber",
-          "purposeofvisit",
-          "email",
-          "hostName",
-          "department",
-          "inTime"
-        ).orderBy("Id", false)();
+        const items = await sp.web.lists
+          .getByTitle("visitor-list")
+          .items
+          .select(
+            "Id",
+            "name",
+            "number",
+            "purposeofvisit",
+            "email",
+            "hostname/Title",  // ✅ Only request Title from Person field
+            "Department",
+            "In_x002d_time"
+          )
+          .expand("hostname")
+          .orderBy("Id", false)();
+
         setVisitors(items);
       } catch (error) {
         console.error("❌ Error loading visitors:", error);
@@ -48,17 +57,14 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
     };
 
     fetchVisitors();
-  }, []);
+  }, [sp]);
 
+  // Optional style cleanup for full-page experience
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
-      #SuiteNavWrapper,
-      #spSiteHeader,
-      #spLeftNav,
-      .spAppBar,
-      .sp-appBar,
-      .sp-appBar-mobile,
+      #SuiteNavWrapper, #spSiteHeader, #spLeftNav,
+      .spAppBar, .sp-appBar, .sp-appBar-mobile,
       div[data-automation-id="pageCommandBar"],
       div[data-automation-id="pageHeader"],
       div[data-automation-id="pageFooter"] {
@@ -76,7 +82,8 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
         background: #fff !important;
       }
 
-      #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
+      #spPageCanvasContent, .CanvasComponent, .CanvasZone,
+      .CanvasSection, .control-zone {
         width: 100vw !important;
         height: 100vh !important;
         margin: 0 !important;
@@ -93,39 +100,44 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
   }, []);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
-      <div className={styles.container}>
-        
-        {/* Header */}
-        <header className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerLeft}>
-              {/* Optional logo here */}
-              {/* <img src="/logo.png" alt="Logo" className={styles.logo} /> */}
-            </div>
-            <div className={styles.headerCenter}>
-              <h1 className={styles.title}>Visitor Management System</h1>
-              <p className={styles.subtitle}>Track, manage, and view all your visitors efficiently.</p>
-            </div>
-            <div className={styles.headerRight}>
-              {/* You can add user info here if needed */}
-            </div>
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      margin: 0,
+      padding: 0,
+      overflow: 'auto',
+      backgroundColor: '#fff',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      zIndex: 9999
+    }}>
+      <div className={styles.visitorDashboard}>
+        <header className={styles.dashboardHeader}>
+          <div className={styles.dashboardHeader__left}>
+            <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
+          </div>
+          <div className={styles.dashboardHeader__right}>
+            <span className={styles.dashboardHeader__userName}>Welcome, John Doe</span>
           </div>
         </header>
 
         {/* Navigation */}
-        <div className={styles.navbar}>
-          <button onClick={() => navigate('/visitorform')}>
-            Add Visitor <FontAwesomeIcon icon={faArrowRight} />
-          </button>
-            <button onClick={() => navigate('/visitorform')}>
-            Reports <FontAwesomeIcon icon={faArrowRight} />
-          </button>
-          <button onClick={() => navigate('/')}>
-            Dashboard <FontAwesomeIcon icon={faArrowRight} />
-          </button>
-        </div>
+       <div className={styles.visitorDashboard__actions}>
+            <button className={styles.btn} onClick={() => navigate('/visitorform')}>
+              Add Visitor
+            </button>
 
+            <button className={styles.btn} onClick={() => navigate('/reports')}>
+              Reports
+            </button>
+
+             <button className={styles.btn} onClick={() => navigate('/')}>
+              Dashboard
+            </button>
+          </div>
+
+        
         {/* Heading */}
         <h2 className={styles.heading}>Visitor Records</h2>
 
@@ -144,18 +156,25 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
               </tr>
             </thead>
             <tbody>
-              {visitors.map(visitor => (
-                <tr key={visitor.Id}>
-                  <td>{visitor.name}</td>
-                  <td>{visitor.contactNumber}</td>
-                  <td>{visitor.email}</td>
-                  <td>{visitor.purposeofvisit}</td>
-                  <td>{visitor.hostName}</td>
-                  <td>{visitor.department}</td>
-                  <td>{visitor.inTime}</td>
-                </tr>
-              ))}
-            </tbody>
+  {visitors.map(visitor => (
+    <tr key={visitor.Id}>
+      <td>{visitor.name}</td>
+      <td>{visitor.number}</td>
+      <td>{visitor.email}</td>
+  <td className={styles.iconText}>
+  <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
+  {visitor.purposeofvisit}
+</td>
+      <td>{visitor.hostname?.Title || "N/A"}</td>
+     <td className={styles.iconText}>
+  {React.createElement(FaBuilding, { style: { color: "#165a43", marginRight: "6px" } })}
+  {visitor.Department}
+</td>
+      <td>{visitor.In_x002d_time}</td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
         </div>
 

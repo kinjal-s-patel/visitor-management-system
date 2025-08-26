@@ -5,12 +5,12 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import styles from './visitorlogs.module.scss';
-import { FaBuilding, FaBriefcase } from "react-icons/fa";
+import { FaBuilding, FaBriefcase, FaSearch } from "react-icons/fa"; // ✅ Added FaSearch
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 export interface IVisitorDashboardProps {
   sp: any; // spfi object passed from parent
-  context : WebPartContext
+  context: WebPartContext;
 }
 
 interface IVisitor {
@@ -19,18 +19,21 @@ interface IVisitor {
   number: string;
   purposeofvisit: string;
   email: string;
-  hostname: { Title: string }; // Person/Group field
+  hostname: { Title: string };
   Department: string;
   visitdate: string;
   In_x002d_time: string;
 }
 
-const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
+const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
   const navigate = useNavigate();
   const [visitors, setVisitors] = useState<IVisitor[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   const recordsPerPage = 10;
 
+  // ✅ Fetch visitors
   useEffect(() => {
     const fetchVisitors = async () => {
       try {
@@ -60,6 +63,7 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
     fetchVisitors();
   }, [sp]);
 
+  // ✅ Format In-Time
   const formatTextTime = (timeString: string) => {
     if (!timeString) return "";
     const [hourStr, minute] = timeString.split(":");
@@ -72,13 +76,21 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
     return `${hour}:${minute} ${ampm}`;
   };
 
-  // ✅ Pagination logic
+  // ✅ Filter visitors
+  const filteredVisitors = visitors.filter((v) =>
+    v.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.hostname?.Title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.Department?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // ✅ Pagination logic applied on filteredVisitors
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = visitors.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(visitors.length / recordsPerPage);
+  const currentRecords = filteredVisitors.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredVisitors.length / recordsPerPage);
 
-  // ✅ Cleanup default SharePoint layout
+  // ✅ Cleanup SharePoint chrome
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
@@ -132,30 +144,41 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
       zIndex: 9999
     }}>
       <div className={styles.visitorDashboard}>
+        {/* Header */}
         <header className={styles.dashboardHeader}>
           <div className={styles.dashboardHeader__left}>
             <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
           </div>
           <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}> Welcome, {context.pageContext.user.displayName}</span>
+            <span className={styles.dashboardHeader__userName}>
+              Welcome, {context.pageContext.user.displayName}
+            </span>
           </div>
         </header>
 
         {/* Navigation */}
         <div className={styles.visitorDashboard__actions}>
-          <button className={styles.btn} onClick={() => navigate('/visitorform')}>
-            Add Visitor
-          </button>
-          <button className={styles.btn} onClick={() => navigate('/reports')}>
-            Reports
-          </button>
-          <button className={styles.btn} onClick={() => navigate('/')}>
-            Dashboard
-          </button>
+          <button className={styles.btn} onClick={() => navigate('/visitorform')}>Add Visitor</button>
+          <button className={styles.btn} onClick={() => navigate('/reports')}>Reports</button>
+          <button className={styles.btn} onClick={() => navigate('/')}>Dashboard</button>
         </div>
 
-        {/* Heading */}
-        <h2 className={styles.heading}>Visitor Records</h2>
+        {/* Heading + Search */}
+        <div className={styles.headingRow}>
+          <h2 className={styles.heading}>Visitor Records</h2>
+          <div className={styles.searchBox}>
+            <FaSearch className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search visitors..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1); // reset page when searching
+              }}
+            />
+          </div>
+        </div>
 
         {/* Visitor Table */}
         <div className={styles.tableContainer}>
@@ -173,24 +196,32 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
               </tr>
             </thead>
             <tbody>
-              {currentRecords.map(visitor => (
-                <tr key={visitor.Id}>
-                  <td>{visitor.name}</td>
-                  <td>{visitor.number}</td>
-                  <td>{visitor.email}</td>
-                  <td className={styles.iconText}>
-                    <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
-                    {visitor.purposeofvisit}
+              {currentRecords.length > 0 ? (
+                currentRecords.map(visitor => (
+                  <tr key={visitor.Id}>
+                    <td>{visitor.name}</td>
+                    <td>{visitor.number}</td>
+                    <td>{visitor.email}</td>
+                    <td className={styles.iconText}>
+                      <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
+                      {visitor.purposeofvisit}
+                    </td>
+                    <td>{visitor.hostname?.Title || "N/A"}</td>
+                    <td className={styles.iconText}>
+                      <FaBuilding style={{ color: "#165a43", marginRight: "6px" }} />
+                      {visitor.Department}
+                    </td>
+                    <td>{visitor.visitdate}</td>
+                    <td>{formatTextTime(visitor.In_x002d_time)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: "center", padding: "20px" }}>
+                    No visitors found.
                   </td>
-                  <td>{visitor.hostname?.Title || "N/A"}</td>
-                  <td className={styles.iconText}>
-                    <FaBuilding style={{ color: "#165a43", marginRight: "6px" }} />
-                    {visitor.Department}
-                  </td>
-                  <td>{visitor.visitdate}</td>
-                  <td>{formatTextTime(visitor.In_x002d_time)}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -200,8 +231,8 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
           <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
             ⬅ Previous
           </button>
-          <span> Page {currentPage} of {totalPages} </span>
-          <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>
+          <span> Page {currentPage} of {totalPages || 1} </span>
+          <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0}>
             Next ➡
           </button>
         </div>

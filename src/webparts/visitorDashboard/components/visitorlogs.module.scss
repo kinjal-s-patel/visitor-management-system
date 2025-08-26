@@ -86,12 +86,61 @@
 }
 
 
-/* Table Title */
+// /* Table Title */
+// .heading {
+//    padding: 24px 32px 10px;
+//   color: #014421;
+//   font-size: 22px;
+//   font-weight: 600;
+// }
+
+/* Heading row */
+.headingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 32px 12px; /* reduce space above/below */
+}
+
+/* Heading text */
 .heading {
-  padding: 24px 32px 10px;
-  color: #014421;
-  font-size: 22px;
+  margin: 0; /* remove extra margin */
+  font-size: 20px;
   font-weight: 600;
+  color: #014421;
+}
+
+/* Search box wrapper */
+.searchBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 240px;     /* slightly smaller so it doesn’t float too wide */
+}
+
+/* Search input */
+.searchBox input {
+  width: 100%;
+  padding: 7px 12px 7px 34px; /* left padding for icon */
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 13px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchBox input:focus {
+  outline: none;
+  border-color: #0078d4;
+  box-shadow: 0 0 4px rgba(0, 120, 212, 0.4);
+}
+
+/* Search icon */
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: #666;
+  font-size: 14px;
+  pointer-events: none;
 }
 
 /* Table Section */

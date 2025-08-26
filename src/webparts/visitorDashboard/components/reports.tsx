@@ -8,9 +8,11 @@ import { saveAs } from 'file-saver';
 import { useNavigate } from 'react-router-dom';
 import * as Papa from 'papaparse';
 import { FaBriefcase, FaBuilding } from "react-icons/fa";
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 export interface IVisitorDashboardProps {
   sp: any; // or SPFI if you're using @pnp/sp properly typed
+    context: WebPartContext;
 }
 
 interface IVisitor {
@@ -26,13 +28,14 @@ interface IVisitor {
   Outtime?: string;
 }
 
-const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
+const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
   const [visitors, setVisitors] = useState<IVisitor[]>([]);
   const [filtered, setFiltered] = useState<IVisitor[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const navigate = useNavigate();
+  
 
   // ✅ Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,8 +80,13 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
     let filteredData = [...visitors];
 
     if (statusFilter !== 'All') {
-      filteredData = filteredData.filter(v => v.status === statusFilter);
-    }
+  filteredData = filteredData.filter(v => {
+    const normalizedStatus = (v.status || "").toLowerCase().replace(/\s|-/g, "");
+    const normalizedFilter = statusFilter.toLowerCase().replace(/\s|-/g, "");
+    return normalizedStatus === normalizedFilter;
+  });
+}
+
 
     if (startDate) {
       filteredData = filteredData.filter(v => new Date(v.visitdate) >= new Date(startDate));
@@ -98,9 +106,17 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
     saveAs(blob, 'Visitor_Report.csv');
   };
 
-  const getCountByStatus = (status: string) => {
-    return visitors.filter(v => v.status === status).length;
-  };
+  //card-count logic
+const getCountByStatus = (status: string) => {
+  if (status === "All") return visitors.length;
+
+  return visitors.filter(v => {
+    const normalized = (v.status || "").toLowerCase().replace(/\s|-/g, ""); 
+    const compareTo = status.toLowerCase().replace(/\s|-/g, ""); 
+    return normalized === compareTo;
+  }).length;
+};
+
 
   // ✅ Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -152,9 +168,10 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
           <div className={styles.dashboardHeader__left}>
             <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
           </div>
-          <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}>Welcome, John Doe</span>
-          </div>
+ <span className={styles.dashboardHeader__userName}>
+        Welcome, {context.pageContext.user.displayName}
+      </span>
+
         </header>
 
         {/* NAVIGATION */}
@@ -171,14 +188,14 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
 
           {/* Filters */}
           <div className={styles.filters}>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="All">All Statuses</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-              <option value="CheckedIn">Checked In</option>
-              <option value="CheckedOut">Checked Out</option>
-            </select>
+ <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+  <option value="All">All Statuses</option>
+  <option value="Pending">Pending</option>
+  <option value="Approved">Approved</option>
+  <option value="Rejected">Rejected</option>
+  <option value="Checked In">Checked In</option>
+  <option value="Checked Out">Checked Out</option>
+</select>
 
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
@@ -189,9 +206,9 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp }) => {
           {/* Stats */}
           <div className={styles.stats}>
             <div className={styles.card}><strong>Total Visitors</strong><span>{visitors.length}</span></div>
-            <div className={styles.card}><strong>Checked In</strong><span>{getCountByStatus("CheckedIn")}</span></div>
             <div className={styles.card}><strong>Pending</strong><span>{getCountByStatus("Pending")}</span></div>
-            <div className={styles.card}><strong>Rejected</strong><span>{getCountByStatus("Rejected")}</span></div>
+            <div className={styles.card}><strong>Checked In</strong>  <span>{getCountByStatus("Checked In")}</span></div>
+            <div className={styles.card}> <strong>Checked Out</strong><span>{getCountByStatus("Checked Out")}</span></div>
           </div>
 
           {/* Table */}

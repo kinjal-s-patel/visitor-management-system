@@ -175,7 +175,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
             <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
           </div>
           <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}>Welcome, John Doe</span>
+            <span className={styles.dashboardHeader__userName}> Welcome, {context.pageContext.user.displayName}</span>
           </div>
         </header>
 

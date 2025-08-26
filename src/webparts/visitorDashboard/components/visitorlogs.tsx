@@ -6,9 +6,11 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import styles from './visitorlogs.module.scss';
 import { FaBuilding, FaBriefcase } from "react-icons/fa";
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 export interface IVisitorDashboardProps {
   sp: any; // spfi object passed from parent
+  context : WebPartContext
 }
 
 interface IVisitor {
@@ -23,7 +25,7 @@ interface IVisitor {
   In_x002d_time: string;
 }
 
-const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
+const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp,context }) => {
   const navigate = useNavigate();
   const [visitors, setVisitors] = useState<IVisitor[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -135,7 +137,7 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
             <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
           </div>
           <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}>Welcome, John Doe</span>
+            <span className={styles.dashboardHeader__userName}> Welcome, {context.pageContext.user.displayName}</span>
           </div>
         </header>
 

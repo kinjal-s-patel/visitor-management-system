@@ -5,12 +5,7 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import styles from './visitorlogs.module.scss';
-import { FaBuilding } from "react-icons/fa"; // ✅ Correct
-import { FaBriefcase } from "react-icons/fa"; // ✅ Correct
-
-
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { FaBuilding, FaBriefcase } from "react-icons/fa";
 
 export interface IVisitorDashboardProps {
   sp: any; // spfi object passed from parent
@@ -22,14 +17,17 @@ interface IVisitor {
   number: string;
   purposeofvisit: string;
   email: string;
-  hostname: { Title: string }; // ✅ Adjusted type to match Person field
+  hostname: { Title: string }; // Person/Group field
   Department: string;
+  visitdate: string;
   In_x002d_time: string;
 }
 
 const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
   const navigate = useNavigate();
   const [visitors, setVisitors] = useState<IVisitor[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const recordsPerPage = 10;
 
   useEffect(() => {
     const fetchVisitors = async () => {
@@ -43,8 +41,9 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
             "number",
             "purposeofvisit",
             "email",
-            "hostname/Title",  // ✅ Only request Title from Person field
+            "hostname/Title",
             "Department",
+            "visitdate",
             "In_x002d_time"
           )
           .expand("hostname")
@@ -59,7 +58,25 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
     fetchVisitors();
   }, [sp]);
 
-  // Optional style cleanup for full-page experience
+  const formatTextTime = (timeString: string) => {
+    if (!timeString) return "";
+    const [hourStr, minute] = timeString.split(":");
+    let hour = parseInt(hourStr, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+
+    return `${hour}:${minute} ${ampm}`;
+  };
+
+  // ✅ Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = visitors.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(visitors.length / recordsPerPage);
+
+  // ✅ Cleanup default SharePoint layout
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
@@ -123,21 +140,18 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
         </header>
 
         {/* Navigation */}
-       <div className={styles.visitorDashboard__actions}>
-            <button className={styles.btn} onClick={() => navigate('/visitorform')}>
-              Add Visitor
-            </button>
+        <div className={styles.visitorDashboard__actions}>
+          <button className={styles.btn} onClick={() => navigate('/visitorform')}>
+            Add Visitor
+          </button>
+          <button className={styles.btn} onClick={() => navigate('/reports')}>
+            Reports
+          </button>
+          <button className={styles.btn} onClick={() => navigate('/')}>
+            Dashboard
+          </button>
+        </div>
 
-            <button className={styles.btn} onClick={() => navigate('/reports')}>
-              Reports
-            </button>
-
-             <button className={styles.btn} onClick={() => navigate('/')}>
-              Dashboard
-            </button>
-          </div>
-
-        
         {/* Heading */}
         <h2 className={styles.heading}>Visitor Records</h2>
 
@@ -152,30 +166,42 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp }) => {
                 <th>Purpose</th>
                 <th>Host</th>
                 <th>Department</th>
+                <th>Date</th>
                 <th>In-Time</th>
               </tr>
             </thead>
             <tbody>
-  {visitors.map(visitor => (
-    <tr key={visitor.Id}>
-      <td>{visitor.name}</td>
-      <td>{visitor.number}</td>
-      <td>{visitor.email}</td>
-  <td className={styles.iconText}>
-  <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
-  {visitor.purposeofvisit}
-</td>
-      <td>{visitor.hostname?.Title || "N/A"}</td>
-     <td className={styles.iconText}>
-  {React.createElement(FaBuilding, { style: { color: "#165a43", marginRight: "6px" } })}
-  {visitor.Department}
-</td>
-      <td>{visitor.In_x002d_time}</td>
-    </tr>
-  ))}
-</tbody>
-
+              {currentRecords.map(visitor => (
+                <tr key={visitor.Id}>
+                  <td>{visitor.name}</td>
+                  <td>{visitor.number}</td>
+                  <td>{visitor.email}</td>
+                  <td className={styles.iconText}>
+                    <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
+                    {visitor.purposeofvisit}
+                  </td>
+                  <td>{visitor.hostname?.Title || "N/A"}</td>
+                  <td className={styles.iconText}>
+                    <FaBuilding style={{ color: "#165a43", marginRight: "6px" }} />
+                    {visitor.Department}
+                  </td>
+                  <td>{visitor.visitdate}</td>
+                  <td>{formatTextTime(visitor.In_x002d_time)}</td>
+                </tr>
+              ))}
+            </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className={styles.pagination}>
+          <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
+            ⬅ Previous
+          </button>
+          <span> Page {currentPage} of {totalPages} </span>
+          <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>
+            Next ➡
+          </button>
         </div>
 
         {/* Footer */}

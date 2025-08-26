@@ -150,6 +150,34 @@
   align-items: center;
   margin-right: 6px;
 }
+
+.pagination {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  button {
+    padding: 6px 14px;
+    border: none;
+    background: #0c502d;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+
+    &:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background: #7dcfa5;
+    }
+  }
+}
+
 /* Footer */
 .footer {
   padding: 20px 32px;

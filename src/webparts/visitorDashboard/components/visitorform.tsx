@@ -45,7 +45,8 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     hostName: '',
     hostId: null as number | null,
     Department: '',
-    In_x002d_time: ''
+    In_x002d_time: '',
+    visitdate :''
   });
   
 
@@ -75,6 +76,9 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     }
   };
 
+    const dateOnly = new Date(formData.visitdate); // e.g. 2025-08-26
+    dateOnly.setMinutes(dateOnly.getMinutes() - dateOnly.getTimezoneOffset());
+
   const handleSubmit = async () => {
   if (!formData.hostId) {
     alert("Please select a valid host.");
@@ -89,13 +93,14 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
       purposeofvisit: formData.purposeofvisit,
       email: formData.email,
       Department: formData.Department,
-      In_x002d_time: new Date(`1970-01-01T${formData.In_x002d_time}:00Z`).toISOString(), // ⬅️ FIXED
+      In_x002d_time: formData.In_x002d_time , // stores "10:11"
       status: 'Pending',
-      visitdate: new Date().toISOString(),
+      visitdate:formData.visitdate,
       hostnameId: formData.hostId // 👈 Make sure your 'hostname' field is a Person field
+
     });
 
-    alert('Visitor registered successfully');
+    alert('Visitor added successfully');
     navigate('/');
   } catch (error) {
     console.error("Error saving visitor:", error);
@@ -104,48 +109,62 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
 };
 
   useEffect(() => {
-    loadHosts();
+  loadHosts();
 
-    const style = document.createElement("style");
-    style.innerHTML = `
-      #SuiteNavWrapper,
-      #spSiteHeader,
-      #spLeftNav,
-      .spAppBar,
-      .sp-appBar,
-      .sp-appBar-mobile,
-      div[data-automation-id="pageCommandBar"],
-      div[data-automation-id="pageHeader"],
-      div[data-automation-id="pageFooter"] {
-        display: none !important;
-        height: 0 !important;
-        overflow: hidden !important;
-      }
+  // ⏰ Auto-fill current time when form loads
+  const now = new Date();
+  const currentTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+  setFormData(prev => ({ ...prev, In_x002d_time: currentTime }));
+  const currentDate = now.toISOString().split("T")[0]; // YYYY-MM-DD format
 
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        height: 100% !important;
-        width: 100% !important;
-        overflow: hidden !important;
-        background: #fff !important;
-      }
+    setFormData(prev => ({
+    ...prev,
+    In_x002d_time: currentTime,
+    visitdate: currentDate
+  }));
 
-      #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
-        width: 100vw !important;
-        height: 100vh !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-        max-width: 100vw !important;
-      }
+  // 🔒 Hide SharePoint chrome
+  const style = document.createElement("style");
+  style.innerHTML = `
+    #SuiteNavWrapper,
+    #spSiteHeader,
+    #spLeftNav,
+    .spAppBar,
+    .sp-appBar,
+    .sp-appBar-mobile,
+    div[data-automation-id="pageCommandBar"],
+    div[data-automation-id="pageHeader"],
+    div[data-automation-id="pageFooter"] {
+      display: none !important;
+      height: 0 !important;
+      overflow: hidden !important;
+    }
 
-      .ms-FocusZone {
-        overflow: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }, []);
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
+      width: 100% !important;
+      overflow: hidden !important;
+      background: #fff !important;
+    }
+
+    #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
+      width: 100vw !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      max-width: 100vw !important;
+    }
+
+    .ms-FocusZone {
+      overflow: hidden !important;
+    }
+  `;
+  document.head.appendChild(style);
+}, []);
+
 
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
@@ -172,7 +191,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
            <h2 className={styles.heading}>Visitor Form</h2>
     <p className={styles.subheading}>Please fill in the visitor details below</p>
           <div className={styles.formWrapper}>
-            <TextField
+ <TextField
   label="Name"
   placeholder="Enter full name as on ID"
   value={formData.name}
@@ -227,6 +246,14 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
   selectedKey={formData.Department}
   onChange={(e, option) => handleChange('Department', option?.key.toString() || '')}
   required
+/>
+<TextField
+  label="Visit Date"
+  type="date"
+  value={formData.visitdate}
+  onChange={(e, val) => handleChange('visitdate', val || '')}
+  required
+  placeholder="Select date of visit"
 />
 
 <TextField

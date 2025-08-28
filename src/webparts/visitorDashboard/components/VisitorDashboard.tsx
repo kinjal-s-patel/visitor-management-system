@@ -17,6 +17,7 @@ import styles from "./VisitorDashboard.module.scss";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { useNavigate } from "react-router-dom";
 
+
 interface IVisitorItem {
   Id: number;
   Title: string;
@@ -41,7 +42,7 @@ export interface IVisitorDashboardProps {
 }
 
 const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
-  const [loading, setLoading] = React.useState(true);
+ const [loading, setLoading] = React.useState(false); // start as false
   const [todayVisitors, setTodayVisitors] = React.useState<IVisitorItem[]>([]);
   const [pendingApprovals, setPendingApprovals] = React.useState<IVisitorItem[]>([]);
   const [checkedIn, setCheckedIn] = React.useState<IVisitorItem[]>([]);
@@ -52,7 +53,7 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
   const sp = React.useMemo(() => spfi().using(SPFx(context)), [context]);
 
   const loadAll = async () => {
-    setLoading(true);
+    setLoading(false);
     setError(null);
 
     try {
@@ -147,90 +148,106 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
     );
   }
 
-  return (
-    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
-      <div className={styles.visitorDashboard}>
-        <header className={styles.dashboardHeader}>
-          <div className={styles.dashboardHeader__left}>
-            <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
-          </div>
-          <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}> Welcome, {context.pageContext.user.displayName}</span>
-          </div>
-        </header>
+return (
+  <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
+    <div className={styles.visitorDashboard}>
+      {/* Header */}
+      <header className={styles.dashboardHeader}>
+        <div className={styles.dashboardHeader__left}>
+          <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
+        </div>
+        <div className={styles.dashboardHeader__right}>
+          <span className={styles.dashboardHeader__userName}>
+            Welcome, {context.pageContext.user.displayName}
+          </span>
+        </div>
+      </header>
 
-        <div className={styles.visitorDashboard__header}>
-          <div>
-            <h1 className={styles.visitorDashboard__title}>Visitor Dashboard</h1>
-            <p className={styles.visitorDashboard__subtitle}>Overview of today’s visitor activity</p>
+      {/* Sub Header */}
+      <div className={styles.visitorDashboard__header}>
+        <div>
+          <h1 className={styles.visitorDashboard__title}>Visitor Dashboard</h1>
+          <p className={styles.visitorDashboard__subtitle}>
+            Overview of today’s visitor activity
+          </p>
+        </div>
+        <div className={styles.visitorDashboard__actions}>
+          <button className={styles.btn} onClick={() => navigate("/visitorform")}>
+            Add Visitor
+          </button>
+          <button className={styles.btn} onClick={() => navigate("/visitorlogs")}>
+            View Visitor
+          </button>
+          <button className={styles.btn} onClick={() => navigate("/reports")}>
+            Reports
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && <div className={styles.visitorDashboard__error}>{error}</div>}
+
+      {/* KPIs */}
+      <div className={styles.visitorDashboard__kpis}>
+        <div className={`${styles.kpiCard} ${styles.kpiCardPlum}`}>
+          <div className={styles.kpiCard__icon}>
+            <People24Regular />
           </div>
-          <div className={styles.visitorDashboard__actions}>
-            <button className={styles.btn} onClick={() => navigate('/visitorform')}>
-              Add Visitor
-            </button>
-
-            <button className={styles.btn} onClick={() => navigate('/visitorlogs')}>
-              View Visitor
-            </button>
-
-            <button className={styles.btn} onClick={() => navigate('/reports')}>
-              Reports
-            </button>
+          <div className={styles.kpiCard__content}>
+            <h3>Total Visitors Today</h3>
+            <p>{todayVisitors.length}</p>
           </div>
         </div>
 
-        {error && <div className={styles.visitorDashboard__error}>{error}</div>}
-
-        <div className={styles.visitorDashboard__kpis}>
-         <div className={`${styles.kpiCard} ${styles.kpiCardPlum}`}>
-  <div className={styles.kpiCard__icon}><People24Regular /></div>
-  <div className={styles.kpiCard__content}>
-    <h3>Total Visitors Today</h3>
-    <p>{todayVisitors.length}</p>
-  </div>
-</div>
-
-         <div className={`${styles.kpiCard} ${styles.kpiCardOrange}`}>
-  <div className={styles.kpiCard__icon}><Alert24Regular /></div>
-  <div className={styles.kpiCard__content}>
-    <h3>Pending Approvals</h3>
-    <p>{pendingApprovals.length}</p>
-  </div>
-</div>
-
-<div className={`${styles.kpiCard} ${styles.kpiCardMint}`}>
-  <div className={styles.kpiCard__icon}><CheckmarkCircle24Regular /></div>
-  <div className={styles.kpiCard__content}>
-    <h3>Checked In</h3>
-    <p>{checkedIn.length}</p>
-  </div>
-</div>
-
-        </div>
-
-        <div className={styles.visitorDashboard__activitySection}>  
-          <div className={styles.activityCard}>
+        <div className={`${styles.kpiCard} ${styles.kpiCardOrange}`}>
+          <div className={styles.kpiCard__icon}>
+            <Alert24Regular />
+          </div>
+          <div className={styles.kpiCard__content}>
             <h3>Pending Approvals</h3>
-            {pendingApprovals.length === 0 ? (
-              <p>No pending check-in requests.</p>
-            ) : (
-              pendingApprovals.map((visitor, index) => (
-                <p key={index}>{visitor.name} - {visitor.purposeofvisit}</p>
-              ))
-            )}
-          </div>
-
-          <div className={styles.activityCard}>
-            <h3>Recent Activity</h3>
-            {recentActivity.length === 0 ? (
-              <p>No recent activity today.</p>
-            ) : (
-              recentActivity.map((visitor, index) => (
-                <p key={index}>{visitor.name} - {visitor.status}</p>
-              ))
-            )}
+            <p>{pendingApprovals.length}</p>
           </div>
         </div>
+
+        <div className={`${styles.kpiCard} ${styles.kpiCardMint}`}>
+          <div className={styles.kpiCard__icon}>
+            <CheckmarkCircle24Regular />
+          </div>
+          <div className={styles.kpiCard__content}>
+            <h3>Checked In</h3>
+            <p>{checkedIn.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity */}
+      <div className={styles.visitorDashboard__activitySection}>
+        <div className={styles.activityCard}>
+          <h3>Pending Approvals</h3>
+          {pendingApprovals.length === 0 ? (
+            <p>No pending check-in requests.</p>
+          ) : (
+            pendingApprovals.map((visitor, index) => (
+              <p key={index}>
+                {visitor.name} - {visitor.purposeofvisit}
+              </p>
+            ))
+          )}
+        </div>
+
+        <div className={styles.activityCard}>
+          <h3>Recent Activity</h3>
+          {recentActivity.length === 0 ? (
+            <p>No recent activity today.</p>
+          ) : (
+            recentActivity.map((visitor, index) => (
+              <p key={index}>
+                {visitor.name} - {visitor.status}
+              </p>
+            ))
+          )}
+        </div>
+      </div>
 
         <footer className={styles.footer}>
           © 2025 Visitor Management System. All rights reserved.

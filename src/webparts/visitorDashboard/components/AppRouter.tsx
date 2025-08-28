@@ -8,28 +8,25 @@ import ViewVisitors from './visitorlogs';
 import VisitorReportPage from './reports';
 
 const AppRouter = (props: any) => {
-  const navigate = useNavigate(); // ✅ This gives access to the navigation function
-
+  const navigate = useNavigate();
   // Pass `navigate` as a prop to each routed component
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={<VisitorDashboard {...props} navigateto={navigate} />}
-      />
-      <Route
-        path="/visitorform"
-        element={<VisitorFormPage {...props} navigateto={navigate} />}
-      />
-      <Route
-        path="/visitorlogs"
-        element={<ViewVisitors {...props} navigateto={navigate} />}
-      />
-      <Route
-        path="/reports"
-        element={<VisitorReportPage {...props} navigateto={navigate} />}
-      />
-    </Routes>
+<Routes>
+  <Route path="/" element={<VisitorDashboard {...props} navigateto={navigate} />} />
+  <Route
+    path="/visitorform"
+    element={<VisitorFormPage {...props} navigateto={navigate} />}
+  />
+  <Route
+    path="/visitorlogs"
+    element={<ViewVisitors {...props} navigateto={navigate} />}
+  />
+  <Route
+    path="/reports"
+    element={<VisitorReportPage {...props} navigateto={navigate} />}
+  />
+</Routes>
+
   );
 };
 

@@ -122,14 +122,18 @@ const getCountByStatus = (status: string) => {
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = filtered.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(filtered.length / recordsPerPage);
+ const totalPages = Math.max(1, Math.ceil(filtered.length / recordsPerPage));
 
   // ✅ Remove SharePoint chrome
-  useEffect(() => {
+  React.useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
-      #SuiteNavWrapper, #spSiteHeader, #spLeftNav,
-      .spAppBar, .sp-appBar, .sp-appBar-mobile,
+      #SuiteNavWrapper,
+      #spSiteHeader,
+      #spLeftNav,
+      .spAppBar,
+      .sp-appBar,
+      .sp-appBar-mobile,
       div[data-automation-id="pageCommandBar"],
       div[data-automation-id="pageHeader"],
       div[data-automation-id="pageFooter"] {
@@ -137,6 +141,7 @@ const getCountByStatus = (status: string) => {
         height: 0 !important;
         overflow: hidden !important;
       }
+
       html, body {
         margin: 0 !important;
         padding: 0 !important;
@@ -145,6 +150,7 @@ const getCountByStatus = (status: string) => {
         overflow: hidden !important;
         background: #fff !important;
       }
+
       #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
         width: 100vw !important;
         height: 100vh !important;
@@ -153,6 +159,7 @@ const getCountByStatus = (status: string) => {
         overflow: hidden !important;
         max-width: 100vw !important;
       }
+
       .ms-FocusZone {
         overflow: hidden !important;
       }
@@ -178,7 +185,11 @@ const getCountByStatus = (status: string) => {
         <div className={styles.navButtons}>
           <button className={styles.btn} onClick={() => navigate('/visitorform')}>Add Visitor</button>
           <button className={styles.btn} onClick={() => navigate('/visitorlogs')}>View Visitor</button>
-          <button className={styles.btn} onClick={() => navigate('/')}>Dashboard</button>
+ <button className={styles.btn} onClick={() => navigate('/')}>
+  Dashboard
+</button>
+
+
         </div>
 
         {/* REPORT CONTENT */}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from "react";
 import styles from './visitorform.module.scss';
 import {
   TextField,
@@ -13,6 +13,8 @@ import { SPFx } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
+import "@pnp/sp/files";
+import "@pnp/sp/folders";
 
 interface IVisitorFormPageProps {
   context: any;
@@ -36,6 +38,10 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
   const navigate = useNavigate();
 
   const [hostOptions, setHostOptions] = useState<IDropdownOption[]>([]);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -46,14 +52,39 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     hostId: null as number | null,
     Department: '',
     In_x002d_time: '',
-    visitdate :''
+    visitdate: ''
   });
-  
+
+  // Start Camera
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Camera error:", err);
+      alert("Could not access camera. Please allow permissions.");
+    }
+  };
+
+  // Capture Photo
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext("2d");
+      if (context) {
+        context.drawImage(videoRef.current, 0, 0, 320, 240);
+        const imageData = canvasRef.current.toDataURL("image/png");
+        setPhoto(imageData);
+      }
+    }
+  };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Load Hosts from "host" list
   const loadHosts = async () => {
     try {
       const items = await sp.web.lists
@@ -63,7 +94,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
         .expand("host")();
 
       const options = items
-        .filter(item => item.host) // Only if person value exists
+        .filter(item => item.host)
         .map(item => ({
           key: item.host.Id,
           text: item.host.Title,
@@ -76,95 +107,105 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     }
   };
 
-    const dateOnly = new Date(formData.visitdate); // e.g. 2025-08-26
-    dateOnly.setMinutes(dateOnly.getMinutes() - dateOnly.getTimezoneOffset());
-
+  // Submit Visitor Form + Photo
   const handleSubmit = async () => {
-  if (!formData.hostId) {
-    alert("Please select a valid host.");
-    return;
-  }
+    if (!formData.hostId) {
+      alert("Please select a valid host.");
+      return;
+    }
 
-  try {
-    await sp.web.lists.getByTitle("visitor-list").items.add({
-      Title: formData.name,
-      name: formData.name,
-      number: formData.number,
-      purposeofvisit: formData.purposeofvisit,
-      email: formData.email,
-      Department: formData.Department,
-      In_x002d_time: formData.In_x002d_time , // stores "10:11"
-      status: 'Pending',
-      visitdate:formData.visitdate,
-      hostnameId: formData.hostId // 👈 Make sure your 'hostname' field is a Person field
+    try {
+      // 1️⃣ Create Visitor list item
+      const item = await sp.web.lists.getByTitle("visitor-list").items.add({
+        Title: formData.name,
+        name: formData.name,
+        number: formData.number,
+        purposeofvisit: formData.purposeofvisit,
+        email: formData.email,
+        Department: formData.Department,
+        In_x002d_time: formData.In_x002d_time,
+        status: 'Pending',
+        visitdate: formData.visitdate,
+        hostnameId: formData.hostId
+      });
 
+      // 2️⃣ Upload captured photo to Site Assets & update VisitorPhoto
+if (photo) {
+  await sp.web.lists
+    .getByTitle("visitor-list")
+    .items.getById(item.data.Id)
+    .update({
+      VisitorPhoto: {
+        // Pass the base64 string directly
+        FileName: `${formData.name}_${Date.now()}.png`,
+        FieldType: "SP.FieldUrlValue",
+        ServerRelativeUrl: photo, // base64 string works for Image column
+      },
     });
+}
 
-    alert('Visitor added successfully');
-    navigate('/');
-  } catch (error) {
-    console.error("Error saving visitor:", error);
-    alert('Error submitting form.');
-  }
-};
+
+      alert('Visitor added successfully');
+      navigate('/');
+    } catch (error) {
+      console.error("Error saving visitor:", error);
+      alert('Error submitting form.');
+    }
+  };
 
   useEffect(() => {
-  loadHosts();
+    loadHosts();
+    startCamera();
 
-  // ⏰ Auto-fill current time when form loads
-  const now = new Date();
-  const currentTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
-  setFormData(prev => ({ ...prev, In_x002d_time: currentTime }));
-  const currentDate = now.toISOString().split("T")[0]; // YYYY-MM-DD format
+    // Auto-fill current date & time
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+    const currentDate = now.toISOString().split("T")[0];
 
     setFormData(prev => ({
-    ...prev,
-    In_x002d_time: currentTime,
-    visitdate: currentDate
-  }));
+      ...prev,
+      In_x002d_time: currentTime,
+      visitdate: currentDate
+    }));
 
-  // 🔒 Hide SharePoint chrome
-  const style = document.createElement("style");
-  style.innerHTML = `
-    #SuiteNavWrapper,
-    #spSiteHeader,
-    #spLeftNav,
-    .spAppBar,
-    .sp-appBar,
-    .sp-appBar-mobile,
-    div[data-automation-id="pageCommandBar"],
-    div[data-automation-id="pageHeader"],
-    div[data-automation-id="pageFooter"] {
-      display: none !important;
-      height: 0 !important;
-      overflow: hidden !important;
-    }
-
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      height: 100% !important;
-      width: 100% !important;
-      overflow: hidden !important;
-      background: #fff !important;
-    }
-
-    #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
-      width: 100vw !important;
-      height: 100vh !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      overflow: hidden !important;
-      max-width: 100vw !important;
-    }
-
-    .ms-FocusZone {
-      overflow: hidden !important;
-    }
-  `;
-  document.head.appendChild(style);
-}, []);
-
+    // Hide SharePoint chrome
+    const style = document.createElement("style");
+    style.innerHTML = `
+      #SuiteNavWrapper,
+      #spSiteHeader,
+      #spLeftNav,
+      .spAppBar,
+      .sp-appBar,
+      .sp-appBar-mobile,
+      div[data-automation-id="pageCommandBar"],
+      div[data-automation-id="pageHeader"],
+      div[data-automation-id="pageFooter"] {
+        display: none !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+      #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
+        width: 100vw !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        max-width: 100vw !important;
+      }
+      .ms-FocusZone {
+        overflow: hidden !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
@@ -175,7 +216,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
             <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
           </div>
           <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}> Welcome, {context.pageContext.user.displayName}</span>
+            <span className={styles.dashboardHeader__userName}>Welcome, {context.pageContext.user.displayName}</span>
           </div>
         </header>
 
@@ -188,83 +229,36 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
 
         {/* Main Content */}
         <main className={styles.formContainer}>
-           <h2 className={styles.heading}>Visitor Form</h2>
-    <p className={styles.subheading}>Please fill in the visitor details below</p>
+          <h2 className={styles.heading}>Visitor Form</h2>
+          <p className={styles.subheading}>Please fill in the visitor details below</p>
           <div className={styles.formWrapper}>
- <TextField
-  label="Name"
-  placeholder="Enter full name as on ID"
-  value={formData.name}
-  onChange={(e, val) => handleChange('name', val || '')}
-  required
-/>
 
-<TextField
-  label="Contact Number"
-  placeholder="Provide a valid phone number (10 digits)"
-  value={formData.number}
-  onChange={(e, val) => handleChange('number', val || '')}
-  required
-/>
+            <TextField label="Name" placeholder="Enter full name" value={formData.name} onChange={(e, val) => handleChange('name', val || '')} required />
 
-<TextField
-  label="Email"
-  type="email"
-  placeholder="Optional, for follow-up communication"
-  value={formData.email}
-  onChange={(e, val) => handleChange('email', val || '')}
-/>
+            <TextField label="Contact Number" placeholder="Phone number" value={formData.number} onChange={(e, val) => handleChange('number', val || '')} required />
 
-<Dropdown
-  label="Purpose of Visit"
-  options={purposeOptions}
-  selectedKey={formData.purposeofvisit}
-  onChange={(e, option) => handleChange('purposeofvisit', option?.key.toString() || '')}
-  required
-  placeholder="Choose the reason for visit"
-/>
+            <TextField label="Email" type="email" placeholder="Email" value={formData.email} onChange={(e, val) => handleChange('email', val || '')} />
 
-<Dropdown
-  label="Host Name"
-  placeholder="Select the person  meeting with"
-  options={hostOptions}
-  selectedKey={formData.hostId}
-  onChange={(e, option) => {
-    handleChange('hostName', option?.text || '');
-    setFormData(prev => ({
-      ...prev,
-      hostId: Number(option?.key),
-    }));
-  }}
-  required
-/>
+            <Dropdown label="Purpose of Visit" options={purposeOptions} selectedKey={formData.purposeofvisit} onChange={(e, option) => handleChange('purposeofvisit', option?.key.toString() || '')} required />
 
-<Dropdown
-  label="Department"
-  placeholder="Department your host belongs to"
-  options={departmentOptions}
-  selectedKey={formData.Department}
-  onChange={(e, option) => handleChange('Department', option?.key.toString() || '')}
-  required
-/>
-<TextField
-  label="Visit Date"
-  type="date"
-  value={formData.visitdate}
-  onChange={(e, val) => handleChange('visitdate', val || '')}
-  required
-  placeholder="Select date of visit"
-/>
+            <Dropdown label="Host Name" placeholder="Select host" options={hostOptions} selectedKey={formData.hostId} onChange={(e, option) => {
+              handleChange('hostName', option?.text || '');
+              setFormData(prev => ({ ...prev, hostId: Number(option?.key) }));
+            }} required />
 
-<TextField
-  label="In Time"
-  type="time"
-  value={formData.In_x002d_time}
-  onChange={(e, val) => handleChange('In_x002d_time', val || '')}
-  required
-  placeholder="Select expected time of entry"
-/>
+            <Dropdown label="Department" placeholder="Select department" options={departmentOptions} selectedKey={formData.Department} onChange={(e, option) => handleChange('Department', option?.key.toString() || '')} required />
 
+            <TextField label="Visit Date" type="date" value={formData.visitdate} onChange={(e, val) => handleChange('visitdate', val || '')} required />
+
+            <TextField label="In Time" type="time" value={formData.In_x002d_time} onChange={(e, val) => handleChange('In_x002d_time', val || '')} required />
+
+            <h3>Capture Live Photo</h3>
+            <video ref={videoRef} width="320" height="240" autoPlay />
+            <canvas ref={canvasRef} width="320" height="240" style={{ display: "none" }} />
+            <div>
+              <PrimaryButton text="Capture Photo" onClick={capturePhoto} />
+            </div>
+            {photo && <div><h4>Preview:</h4><img src={photo} alt="Captured" width="320" height="240" /></div>}
 
             <div className={styles.buttonGroup}>
               <PrimaryButton text="Submit" onClick={handleSubmit} />

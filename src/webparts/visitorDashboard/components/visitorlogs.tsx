@@ -23,6 +23,7 @@ interface IVisitor {
   Department: string;
   visitdate: string;
   In_x002d_time: string;
+  Outtime : string
 }
 
 const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
@@ -49,7 +50,8 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
             "hostname/Title",
             "Department",
             "visitdate",
-            "In_x002d_time"
+            "In_x002d_time",
+            "Outtime"
           )
           .expand("hostname")
           .orderBy("Id", false)();
@@ -75,6 +77,24 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
 
     return `${hour}:${minute} ${ampm}`;
   };
+
+  const handleCheckout = async (visitorId: number) => {
+  try {
+   const now = new Date();
+const outTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+await sp.web.lists.getByTitle("visitor-list").items.getById(visitorId).update({
+  Outtime: outTime
+});
+
+setVisitors(prev =>
+  prev.map(v => v.Id === visitorId ? { ...v, Outtime: outTime } : v)
+);
+  } catch (err) {
+    console.error("❌ Error updating check-out:", err);
+  }
+};
+
 
   // ✅ Filter visitors
   const filteredVisitors = visitors.filter((v) =>
@@ -193,6 +213,8 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
                 <th>Department</th>
                 <th>Date</th>
                 <th>In-Time</th>
+                <th>Out-Time</th>
+                <th>check out</th>
               </tr>
             </thead>
             <tbody>
@@ -213,6 +235,18 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
                     </td>
                     <td>{visitor.visitdate}</td>
                     <td>{formatTextTime(visitor.In_x002d_time)}</td>
+                      <td>{visitor.Outtime ? formatTextTime(visitor.Outtime) : "—"}</td>
+  <td>
+    {!visitor.Outtime && (
+      <button
+        className={styles.btnSmall}
+        onClick={() => handleCheckout(visitor.Id)}
+      >
+        Check Out
+      </button>
+    )}
+  </td>
+
                   </tr>
                 ))
               ) : (

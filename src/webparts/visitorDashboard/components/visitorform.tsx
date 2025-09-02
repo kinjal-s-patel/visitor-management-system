@@ -155,6 +155,8 @@ console.log("Saving visitor with photo:", photoFieldValue);
       In_x002d_time: formData.In_x002d_time,
       status: "Pending",
       visitdate: formData.visitdate,
+        hostnameId: formData.hostId || null, // use Id for Person/Group column
+
 // hostnameId: formData.hostId || null
 
 //      userphoto: {
@@ -318,20 +320,21 @@ console.log("Saving visitor with photo:", photoFieldValue);
               required
             />
 
-            <Dropdown
-              label="Host Name"
-              placeholder="Select host"
-              options={hostOptions}
-              selectedKey={formData.hostId}
-              onChange={(e, option) => {
-                handleChange("hostname", option?.text || "");
-                setFormData((prev) => ({
-                  ...prev,
-                  hostId: Number(option?.key),
-                }));
-              }}
-              required
-            />
+           <Dropdown
+  label="Host Name"
+  placeholder="Select host"
+  options={hostOptions}
+  selectedKey={formData.hostId}
+  onChange={(e, option) => {
+    // Store only the Id for Person/Group column
+    setFormData((prev) => ({
+      ...prev,
+      hostId: Number(option?.key), // this is the Person/Group Id
+    }));
+  }}
+  required
+/>
+
 
             <Dropdown
               label="Department"

@@ -157,8 +157,6 @@ console.log("Saving visitor with photo:", photoFieldValue);
       visitdate: formData.visitdate,
         hostnameId: formData.hostId || null, // use Id for Person/Group column
 
-// hostnameId: formData.hostId || null
-
 //      userphoto: {
 //   "fileName": "file.png",
 //   "serverUrl": "https://tenant.sharepoint.com",

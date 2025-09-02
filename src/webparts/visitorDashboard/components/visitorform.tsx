@@ -48,7 +48,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     number: "",
     purposeofvisit: "",
     email: "",
-    hostName: "",
+    hostname: "",
     hostId: null as number | null,
     Department: "",
     In_x002d_time: "",
@@ -149,13 +149,14 @@ console.log("Saving visitor with photo:", photoFieldValue);
       name: formData.name,
       number: formData.number,
       purposeofvisit: formData.purposeofvisit,
-      hostname: formData.hostName,
+      // hostname: formData.hostname,
       email: formData.email,
       Department: formData.Department,
       In_x002d_time: formData.In_x002d_time,
       status: "Pending",
       visitdate: formData.visitdate,
-//       hostnameId: formData.hostId,
+// hostnameId: formData.hostId || null
+
 //      userphoto: {
 //   "fileName": "file.png",
 //   "serverUrl": "https://tenant.sharepoint.com",
@@ -164,7 +165,7 @@ console.log("Saving visitor with photo:", photoFieldValue);
     });
 
     alert("Visitor added successfully with photo");
-    navigate("/");
+    navigate("/visitorlogs");
   } catch (error) {
     console.error("Error saving visitor:", error);
     alert("Error submitting form.");
@@ -323,7 +324,7 @@ console.log("Saving visitor with photo:", photoFieldValue);
               options={hostOptions}
               selectedKey={formData.hostId}
               onChange={(e, option) => {
-                handleChange("hostName", option?.text || "");
+                handleChange("hostname", option?.text || "");
                 setFormData((prev) => ({
                   ...prev,
                   hostId: Number(option?.key),

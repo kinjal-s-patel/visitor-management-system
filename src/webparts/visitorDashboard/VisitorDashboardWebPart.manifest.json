@@ -4,25 +4,24 @@
   "alias": "VisitorDashboardWebPart",
   "componentType": "WebPart",
 
-  // The "*" signifies that the version should be taken from the package.json
+
   "version": "*",
   "manifestVersion": 2,
 
-  // If true, the component can only be installed on sites where Custom Script is allowed.
-  // Components that allow authors to embed arbitrary script code should set this to true.
-  // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
   "requiresCustomScript": false,
   "supportedHosts": ["SharePointWebPart", "TeamsPersonalApp", "TeamsTab", "SharePointFullPage"],
   "supportsThemeVariants": true,
 
-  "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Advanced
-    "group": { "default": "Advanced" },
-    "title": { "default": "visitor-dashboard" },
-    "description": { "default": "visitor-dashboard description" },
-    "officeFabricIconFontName": "Page",
-    "properties": {
-      "description": "visitor-dashboard"
-    }
-  }]
+ "preconfiguredEntries": [{
+  "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+  "group": { "default": "Advanced" },
+  "title": { "default": "Visitor Management System" },
+  "description":  { "default": "Visitor Management System — manage visitor check-ins, approvals, host notifications. Ideal for reception/HR in mid-to-large organizations."},
+  "officeFabricIconFontName": "Page",
+  "iconImageUrl": "assets/vms-icon.png",
+  "properties": {
+    "description": "Visitor Dashboard"
+  }
+}]
+
 }

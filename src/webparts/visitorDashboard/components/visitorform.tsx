@@ -8,13 +8,6 @@ import {
   PrimaryButton,
 } from "@fluentui/react";
 import { useNavigate } from "react-router-dom";
-import { spfi, SPFI } from "@pnp/sp";
-import { SPFx } from "@pnp/sp";
-import "@pnp/sp/webs";
-import "@pnp/sp/lists";
-import "@pnp/sp/items";
-import "@pnp/sp/files";
-import "@pnp/sp/folders";
 
 interface IVisitorFormPageProps {
   context: any;
@@ -33,14 +26,18 @@ const departmentOptions: IDropdownOption[] = [
   { key: "Management", text: "Management" },
 ];
 
-const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
-  const sp: SPFI = spfi().using(SPFx(context));
-  const navigate = useNavigate();
+const hostOptions: IDropdownOption[] = [
+  { key: 1, text: "John Smith" },
+  { key: 2, text: "Priya Patel" },
+  { key: 3, text: "Amit Sharma" },
+  { key: 4, text: "Sarah Johnson" },
+  { key: 5, text: "David Lee" },
+];
 
-  const [hostOptions, setHostOptions] = useState<IDropdownOption[]>([]);
+const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
   const [photo, setPhoto] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -48,12 +45,10 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     number: "",
     purposeofvisit: "",
     email: "",
-    hostname: "",
     hostId: null as number | null,
     Department: "",
     In_x002d_time: "",
     visitdate: "",
-    userphoto: "",
   });
 
   // Start Camera
@@ -85,98 +80,22 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Load Hosts from "host" list
-  const loadHosts = async () => {
+  // 🟢 Mock Submit Function (no SharePoint call)
+  async function handleSubmit() {
     try {
-      const items = await sp.web.lists
-        .getByTitle("host")
-        .items.select("Id", "host/Id", "host/Title", "host/EMail")
-        .expand("host")();
-
-      const options = items
-        .filter((item) => item.host)
-        .map((item) => ({
-          key: item.host.Id,
-          text: item.host.Title,
-          data: item.host,
-        }));
-
-      setHostOptions(options);
+      console.log("Mock Visitor Data Submitted:", formData);
+      alert("Visitor added successfully.");
+      navigate("/visitorlogs");
     } catch (error) {
-      console.error("Error loading hosts:", error);
+      console.error("Error submitting form:", error);
+      alert("Error submitting form.");
     }
-  };
-
-// Submit Visitor Form + Photo
-const handleSubmit = async () => {
-  try {
-    let photoFieldValue: any = null;
-
-    if (photo) {
-      // Convert base64 → Blob
-      const byteArray = Uint8Array.from(
-        atob(photo.split(",")[1]),
-        (c) => c.charCodeAt(0)
-      );
-      const blob = new Blob([byteArray], { type: "image/png" });
-
-      const fileName = `${formData.name}_${Date.now()}.png`;
-      const folderServerRelativeUrl = `${context.pageContext.web.serverRelativeUrl}/visitor image`;
-
-await sp.web
-  .getFolderByServerRelativePath(folderServerRelativeUrl)
-  .files.addUsingPath(fileName, blob, { Overwrite: true });
-
-const file = sp.web.getFileByServerRelativePath(
-  `${folderServerRelativeUrl}/${fileName}`
-);
-const fileProps = await file.select("Name", "ServerRelativeUrl")();
-console.log("Uploading to folder:", folderServerRelativeUrl);
-console.log("Saving visitor with photo:", photoFieldValue);
-
-
-      // Build Image column JSON
-      photoFieldValue = {
-        fileName: fileProps.Name,
-        serverUrl: window.location.origin,
-        serverRelativeUrl: fileProps.ServerRelativeUrl,
-      };
-    }
-
-    // 📝 Save visitor item
-    await sp.web.lists.getByTitle("visitor-list").items.add({
-      Title: formData.name,
-      name: formData.name,
-      number: formData.number,
-      purposeofvisit: formData.purposeofvisit,
-      // hostname: formData.hostname,
-      email: formData.email,
-      Department: formData.Department,
-      In_x002d_time: formData.In_x002d_time,
-      status: "Pending",
-      visitdate: formData.visitdate,
-        hostnameId: formData.hostId || null, // use Id for Person/Group column
-
-//      userphoto: {
-//   "fileName": "file.png",
-//   "serverUrl": "https://tenant.sharepoint.com",
-//   "serverRelativeUrl": "/sites/VMS/visitor image/file.png"
-// }
-    });
-
-    alert("Visitor added successfully with photo");
-    navigate("/visitorlogs");
-  } catch (error) {
-    console.error("Error saving visitor:", error);
-    alert("Error submitting form.");
   }
-};
 
   useEffect(() => {
-    loadHosts();
     startCamera();
 
-    // Auto-fill current date & time
+    // Auto-fill date and time
     const now = new Date();
     const currentTime = now.toLocaleTimeString([], {
       hour: "2-digit",
@@ -191,21 +110,13 @@ console.log("Saving visitor with photo:", photoFieldValue);
       visitdate: currentDate,
     }));
 
-    // Hide SharePoint chrome
+    // Hide SharePoint chrome for full-page display
     const style = document.createElement("style");
     style.innerHTML = `
-      #SuiteNavWrapper,
-      #spSiteHeader,
-      #spLeftNav,
-      .spAppBar,
-      .sp-appBar,
-      .sp-appBar-mobile,
-      div[data-automation-id="pageCommandBar"],
-      div[data-automation-id="pageHeader"],
-      div[data-automation-id="pageFooter"] {
+      #SuiteNavWrapper, #spSiteHeader, #spLeftNav, .spAppBar,
+      .sp-appBar, .sp-appBar-mobile, div[data-automation-id="pageCommandBar"],
+      div[data-automation-id="pageHeader"], div[data-automation-id="pageFooter"] {
         display: none !important;
-        height: 0 !important;
-        overflow: hidden !important;
       }
       html, body {
         margin: 0 !important;
@@ -220,11 +131,6 @@ console.log("Saving visitor with photo:", photoFieldValue);
         height: 100vh !important;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: hidden !important;
-        max-width: 100vw !important;
-      }
-      .ms-FocusZone {
-        overflow: hidden !important;
       }
     `;
     document.head.appendChild(style);
@@ -235,13 +141,11 @@ console.log("Saving visitor with photo:", photoFieldValue);
       style={{
         width: "100vw",
         height: "100vh",
-        margin: 0,
-        padding: 0,
-        overflow: "auto",
         backgroundColor: "#fff",
         position: "fixed",
         top: 0,
         left: 0,
+        overflow: "auto",
         zIndex: 9999,
       }}
     >
@@ -262,18 +166,9 @@ console.log("Saving visitor with photo:", photoFieldValue);
 
         {/* Navigation */}
         <div className={styles.navButtons}>
-          <PrimaryButton
-            text="View Visitor"
-            onClick={() => navigate("/visitorlogs")}
-          />
-          <PrimaryButton
-            text="Reports"
-            onClick={() => navigate("/reports")}
-          />
-          <PrimaryButton
-            text="Dashboard"
-            onClick={() => navigate("/")}
-          />
+          <PrimaryButton text="View Visitor" onClick={() => navigate("/visitorlogs")} />
+          <PrimaryButton text="Reports" onClick={() => navigate("/reports")} />
+          <PrimaryButton text="Dashboard" onClick={() => navigate("/")} />
         </div>
 
         {/* Main Content */}
@@ -282,6 +177,7 @@ console.log("Saving visitor with photo:", photoFieldValue);
           <p className={styles.subheading}>
             Please fill in the visitor details below
           </p>
+
           <div className={styles.formWrapper}>
             <TextField
               label="Name"
@@ -318,21 +214,16 @@ console.log("Saving visitor with photo:", photoFieldValue);
               required
             />
 
-           <Dropdown
-  label="Host Name"
-  placeholder="Select host"
-  options={hostOptions}
-  selectedKey={formData.hostId}
-  onChange={(e, option) => {
-    // Store only the Id for Person/Group column
-    setFormData((prev) => ({
-      ...prev,
-      hostId: Number(option?.key), // this is the Person/Group Id
-    }));
-  }}
-  required
-/>
-
+            <Dropdown
+              label="Host Name"
+              placeholder="Select host"
+              options={hostOptions}
+              selectedKey={formData.hostId}
+              onChange={(e, option) =>
+                setFormData((prev) => ({ ...prev, hostId: Number(option?.key) }))
+              }
+              required
+            />
 
             <Dropdown
               label="Department"
@@ -363,15 +254,12 @@ console.log("Saving visitor with photo:", photoFieldValue);
 
             <h3>Capture Live Photo</h3>
             <video ref={videoRef} width="320" height="240" autoPlay />
-            <canvas
-              ref={canvasRef}
-              width="320"
-              height="240"
-              style={{ display: "none" }}
-            />
+            <canvas ref={canvasRef} width="320" height="240" style={{ display: "none" }} />
+
             <div>
               <PrimaryButton text="Capture Photo" onClick={capturePhoto} />
             </div>
+
             {photo && (
               <div>
                 <h4>Preview:</h4>

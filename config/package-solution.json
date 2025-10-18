@@ -1,34 +1,37 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "visitor-management-system-client-side-solution",
+    "name": "Visitor Management System",
     "id": "538bb3b9-5aba-4d9e-a8b1-ed2b8e40f47d",
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
+
     "developer": {
-      "name": "",
-      "websiteUrl": "",
-      "privacyUrl": "",
-      "termsOfUseUrl": "",
-      "mpnId": "Undefined-1.20.0"
+      "name": "JMS Advisory Services Pvt. Ltd.",
+      "websiteUrl": "https://jmstech.co",
+      "privacyUrl": "https://jmstech.co/privacy-policy/",
+      "termsOfUseUrl": "https://jmstech.co/wp-content/uploads/2025/10/privacy-policy-visitor-management-system.pdf",
+      "mpnId": ""
     },
+
     "metadata": {
       "shortDescription": {
-        "default": "visitor-management-system description"
+        "default": "Visitor Management System"
       },
       "longDescription": {
-        "default": "visitor-management-system description"
+        "default": "Visitor Management System is a SharePoint Framework (SPFx)-based solution designed to manage visitor registrations, host approvals, and real-time dashboards within Microsoft 365."
       },
       "screenshotPaths": [],
       "videoUrl": "",
-      "categories": []
+      "categories": ["Productivity"]
     },
+
     "features": [
       {
-        "title": "visitor-management-system Feature",
-        "description": "The feature that activates elements of the visitor-management-system solution.",
+        "title": "Visitor Management System Feature",
+        "description": "Activates the components of the Visitor Management System solution, including dashboard and full-page components.",
         "id": "171f4777-80ce-4ea3-8bc3-74a707fbfdbc",
         "version": "1.0.0.0"
       }

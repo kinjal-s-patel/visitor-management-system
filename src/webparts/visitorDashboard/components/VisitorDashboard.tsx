@@ -88,7 +88,7 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
 
     } catch (e) {
       console.error(e);
-      setError('Failed to load visitor data.');
+      setError('Welcome to the Visitor Management Dashboard!');
     } finally {
       setLoading(false);
     }

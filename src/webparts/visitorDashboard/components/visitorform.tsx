@@ -8,6 +8,7 @@ import {
   PrimaryButton,
 } from "@fluentui/react";
 import { useNavigate } from "react-router-dom";
+import { spfi, SPFI, SPFx } from "@pnp/sp";
 
 interface IVisitorFormPageProps {
   context: any;
@@ -26,19 +27,22 @@ const departmentOptions: IDropdownOption[] = [
   { key: "Management", text: "Management" },
 ];
 
-const hostOptions: IDropdownOption[] = [
-  { key: 1, text: "John Smith" },
-  { key: 2, text: "Priya Patel" },
-  { key: 3, text: "Amit Sharma" },
-  { key: 4, text: "Sarah Johnson" },
-  { key: 5, text: "David Lee" },
-];
+// const hostOptions: IDropdownOption[] = [
+//   { key: 1, text: "John Smith" },
+//   { key: 2, text: "Priya Patel" },
+//   { key: 3, text: "Amit Sharma" },
+//   { key: 4, text: "Sarah Johnson" },
+//   { key: 5, text: "David Lee" },
+// ];
 
 const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [hostOptions, setHostOptions] = useState<IDropdownOption[]>([]);
+  const sp: SPFI = spfi().using(SPFx(context));
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -50,6 +54,24 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     In_x002d_time: "",
     visitdate: "",
   });
+
+  const loadHostOptions = async () => {
+  try {
+    const items = await sp.web.lists
+      .getByTitle("host") // 👈 your list name in SharePoint
+      .items.select("Id", "host")(); // fetching Id and Title columns
+
+    const options = items.map((item) => ({
+      key: item.Id,
+      text: item.Title,
+    }));
+
+    setHostOptions(options);
+  } catch (error) {
+    console.error("Error loading host names:", error);
+  }
+};
+
 
   // Start Camera
   const startCamera = async () => {
@@ -94,6 +116,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
 
   useEffect(() => {
     startCamera();
+    loadHostOptions();
 
     // Auto-fill date and time
     const now = new Date();

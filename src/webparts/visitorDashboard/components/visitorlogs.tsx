@@ -14,6 +14,7 @@ export interface IVisitorDashboardProps {
 }
 
 interface IVisitor {
+  host: string;
   Id: number;
   name: string;
   number: string;
@@ -45,6 +46,7 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
             "Id",
             "name",
             "number",
+            "host",
             "purposeofvisit",
             "email",
             "hostname/Title",
@@ -228,7 +230,7 @@ setVisitors(prev =>
                       <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
                       {visitor.purposeofvisit}
                     </td>
-                    <td>{visitor.hostname?.Title || "N/A"}</td>
+                    <td>{visitor.host || "N/A"}</td>
                     <td className={styles.iconText}>
                       <FaBuilding style={{ color: "#165a43", marginRight: "6px" }} />
                       {visitor.Department}

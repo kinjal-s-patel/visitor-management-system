@@ -27,53 +27,53 @@ const departmentOptions: IDropdownOption[] = [
   { key: "Management", text: "Management" },
 ];
 
-// const hostOptions: IDropdownOption[] = [
-//   { key: 1, text: "John Smith" },
-//   { key: 2, text: "Priya Patel" },
-//   { key: 3, text: "Amit Sharma" },
-//   { key: 4, text: "Sarah Johnson" },
-//   { key: 5, text: "David Lee" },
-// ];
-
 const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [hostOptions, setHostOptions] = useState<IDropdownOption[]>([]);
-  const sp: SPFI = spfi().using(SPFx(context));
+  const [manualHost, setManualHost] = useState<string>(""); 
+  const [isManualHost, setIsManualHost] = useState<boolean>(false);
 
+  const sp: SPFI = spfi().using(SPFx(context));
 
   const [formData, setFormData] = useState({
     name: "",
     number: "",
     purposeofvisit: "",
     email: "",
-    hostId: null as number | null,
+    host: "", // ✅ plain text field
+    hostId: "" as string | undefined,  // 👈 allow undefined
     Department: "",
     In_x002d_time: "",
     visitdate: "",
   });
 
-  const loadHostOptions = async () => {
+// ✅ Load hosts from "host" list (Person field)
+const loadHostOptions = async () => {
   try {
+    // Fetch all items from the "email" list
     const items = await sp.web.lists
-      .getByTitle("host") // 👈 your list name in SharePoint
-      .items.select("Id", "host")(); // fetching Id and Title columns
+      .getByTitle("host")
+      .items.select("Id", "Title", "email")(); // 👈 replace "Email" if your column name is different
 
+    console.log("Raw email list items:", items);
+
+    // Map to dropdown options
     const options = items.map((item) => ({
-      key: item.Id,
-      text: item.Title,
+      key: item.Id.toString(),              // 🔹 always a string
+      text: item.email || "Unknown Host",   // 🔹 or replace Title with your column name if different
     }));
 
     setHostOptions(options);
+    console.log("✅ Loaded host emails:", options);
   } catch (error) {
-    console.error("Error loading host names:", error);
+    console.error("❌ Error loading host emails:", error);
   }
 };
 
-
-  // Start Camera
+  // ✅ Start Camera
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -86,7 +86,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     }
   };
 
-  // Capture Photo
+  // ✅ Capture Photo
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
@@ -102,23 +102,37 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 🟢 Mock Submit Function (no SharePoint call)
-  async function handleSubmit() {
-    try {
-      console.log("Mock Visitor Data Submitted:", formData);
-      alert("Visitor added successfully.");
-      navigate("/visitorlogs");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error submitting form.");
-    }
-  }
+  // ✅ Submit Form
+  const handleSubmit = async () => {
+  try {
+    const hostValue = isManualHost ? manualHost : formData.host;
 
+    await sp.web.lists.getByTitle("visitor-list").items.add({
+      name: formData.name,
+      number: formData.number,
+      email: formData.email,
+      purposeofvisit: formData.purposeofvisit,
+      Department: formData.Department,
+      visitdate: formData.visitdate,
+      In_x002d_time: formData.In_x002d_time,
+      host: hostValue, // ✅ This will now include manual or selected host
+        status: "pending", // ✅ Automatically set status to Pending
+    });
+
+    alert("Visitor added successfully!");
+    navigate("/visitorlogs");
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("Error submitting visitor record.");
+  }
+};
+
+
+  // ✅ Initial Load
   useEffect(() => {
     startCamera();
     loadHostOptions();
 
-    // Auto-fill date and time
     const now = new Date();
     const currentTime = now.toLocaleTimeString([], {
       hour: "2-digit",
@@ -132,31 +146,6 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
       In_x002d_time: currentTime,
       visitdate: currentDate,
     }));
-
-    // Hide SharePoint chrome for full-page display
-    const style = document.createElement("style");
-    style.innerHTML = `
-      #SuiteNavWrapper, #spSiteHeader, #spLeftNav, .spAppBar,
-      .sp-appBar, .sp-appBar-mobile, div[data-automation-id="pageCommandBar"],
-      div[data-automation-id="pageHeader"], div[data-automation-id="pageFooter"] {
-        display: none !important;
-      }
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        height: 100% !important;
-        width: 100% !important;
-        overflow: hidden !important;
-        background: #fff !important;
-      }
-      #spPageCanvasContent, .CanvasComponent, .CanvasZone, .CanvasSection, .control-zone {
-        width: 100vw !important;
-        height: 100vh !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-    `;
-    document.head.appendChild(style);
   }, []);
 
   return (
@@ -194,7 +183,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
           <PrimaryButton text="Dashboard" onClick={() => navigate("/")} />
         </div>
 
-        {/* Main Content */}
+        {/* Main Form */}
         <main className={styles.formContainer}>
           <h2 className={styles.heading}>Visitor Form</h2>
           <p className={styles.subheading}>
@@ -204,7 +193,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
           <div className={styles.formWrapper}>
             <TextField
               label="Name"
-              placeholder="Enter full name"
+               placeholder="Enter visitor name"
               value={formData.name}
               onChange={(e, val) => handleChange("name", val || "")}
               required
@@ -212,7 +201,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
 
             <TextField
               label="Contact Number"
-              placeholder="Phone number"
+              placeholder="Enter contact number"
               value={formData.number}
               onChange={(e, val) => handleChange("number", val || "")}
               required
@@ -220,15 +209,15 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
 
             <TextField
               label="Email"
+               placeholder="Enter visitor email address"
               type="email"
-              placeholder="Email"
               value={formData.email}
               onChange={(e, val) => handleChange("email", val || "")}
             />
 
             <Dropdown
               label="Purpose of Visit"
-              placeholder="Purpose of visit"
+                placeholder="Select purpose of visit"
               options={purposeOptions}
               selectedKey={formData.purposeofvisit}
               onChange={(e, option) =>
@@ -237,16 +226,42 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
               required
             />
 
-            <Dropdown
-              label="Host Name"
-              placeholder="Select host"
-              options={hostOptions}
-              selectedKey={formData.hostId}
-              onChange={(e, option) =>
-                setFormData((prev) => ({ ...prev, hostId: Number(option?.key) }))
-              }
-              required
-            />
+            {/* ✅ Host Dropdown */}
+<Dropdown
+  label="Host Email"
+  placeholder="Select or add host"
+  options={[...hostOptions, { key: "add_new", text: "➕ Add host manually" }]}
+  selectedKey={isManualHost ? "add_new" : formData.hostId} // ✅ must match option.key
+  onChange={(e, option) => {
+    if (option?.key === "add_new") {
+      // User wants to add new host manually
+      setIsManualHost(true);
+      setManualHost("");
+      setFormData((prev) => ({
+        ...prev,
+        host: "",
+        hostId: "",
+      }));
+    } else {
+      // User selected from list
+      setIsManualHost(false);
+      setManualHost("");
+      setFormData((prev) => ({
+        ...prev,
+        host: option?.text || "",
+        hostId: option?.key?.toString() || "", // ✅ always string
+      }));
+    }
+  }}
+  required
+/>
+
+{isManualHost && (
+   <TextField label="Enter Host Email"
+    placeholder="Type host email" value={manualHost}
+     onChange={(e, val) => setManualHost(val || "")}
+      required /> 
+      )}
 
             <Dropdown
               label="Department"
@@ -279,9 +294,7 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
             <video ref={videoRef} width="320" height="240" autoPlay />
             <canvas ref={canvasRef} width="320" height="240" style={{ display: "none" }} />
 
-            <div>
-              <PrimaryButton text="Capture Photo" onClick={capturePhoto} />
-            </div>
+            <PrimaryButton text="Capture Photo" onClick={capturePhoto} />
 
             {photo && (
               <div>

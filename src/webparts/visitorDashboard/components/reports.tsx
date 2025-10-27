@@ -18,6 +18,7 @@ export interface IVisitorDashboardProps {
 interface IVisitor {
   Id: number;
   name: string;
+  host: string;
   email: string;
   hostname?: { Title: string };
   Department: string;
@@ -57,6 +58,7 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp, context }) =>
         .select(
           "Id",
           "name",
+          "host",
           "purposeofvisit",
           "email",
           "hostname/Title",
@@ -239,7 +241,7 @@ const getCountByStatus = (status: string) => {
                 <tr key={visitor.Id}>
                   <td>{visitor.name}</td>
                   <td>{visitor.email}</td>
-                  <td>{visitor.hostname?.Title || 'N/A'}</td>
+                  <td>{visitor.host|| 'N/A'}</td>
                   <td>{visitor.status}</td>
                   <td><FaBriefcase /> {visitor.purposeofvisit}</td>
                   <td><FaBuilding /> {visitor.Department}</td>

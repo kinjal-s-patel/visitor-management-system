@@ -112,15 +112,19 @@
   font-weight: bold;
   text-align: center;
 }
+.kpiCardRed {
+  background: linear-gradient(90deg, #f52a23, #e2dc8b);
+  color: #fff;
+}
 
 /* Color Themes - Shadow Effect Using ::before */
 .kpiCardPlum {
-  background: linear-gradient(135deg, #6A1B9A, #c5a2d8); // Deep plum to soft violet
+  background: linear-gradient(135deg, #6A1B9A, #d8a2a2); // Deep plum to soft violet
   color: #fff;
 }
 
 .kpiCardOrange {
-  background: linear-gradient(90deg, #f0332d, #d8c675); // red to gray gradient
+  background: linear-gradient(90deg, #0e3faa, #75c1d8); // red to gray gradient
   color: #ffffff;
 }
 .kpiCardMint {

@@ -24,7 +24,9 @@ interface IVisitor {
   Department: string;
   visitdate: string;
   In_x002d_time: string;
-  Outtime : string
+  Outtime : string;
+  status?: string;
+
 }
 
 const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
@@ -53,7 +55,8 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
             "Department",
             "visitdate",
             "In_x002d_time",
-            "Outtime"
+            "Outtime",
+            "status"
           )
           .expand("hostname")
           .orderBy("Id", false)();
@@ -80,22 +83,39 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
     return `${hour}:${minute} ${ampm}`;
   };
 
-  const handleCheckout = async (visitorId: number) => {
+const handleCheckout = async (visitor: IVisitor) => {
   try {
-   const now = new Date();
-const outTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+    // 🔒 Prevent checkout if status is "Pending"
+    if (visitor.status?.toLowerCase() === "pending") {
+      alert("Approval pending, cannot check out.");
+      return;
+    }
 
-await sp.web.lists.getByTitle("visitor-list").items.getById(visitorId).update({
-  Outtime: outTime
-});
+    // 🔒 Prevent checkout if already checked out
+    // if (visitor.Outtime) {
+    //   alert("Visitor already checked out.");
+    //   return;
+    // }
 
-setVisitors(prev =>
-  prev.map(v => v.Id === visitorId ? { ...v, Outtime: outTime } : v)
-);
+    const now = new Date();
+    const outTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    await sp.web.lists.getByTitle("visitor-list").items.getById(visitor.Id).update({
+      Outtime: outTime
+    });
+
+    // ✅ Update local state
+    setVisitors(prev =>
+      prev.map(v => v.Id === visitor.Id ? { ...v, Outtime: outTime } : v)
+    );
+
+    alert(`Visitor ${visitor.name} checked out successfully at ${outTime}`);
   } catch (err) {
     console.error("❌ Error updating check-out:", err);
+    alert("Something went wrong while checking out.");
   }
 };
+
 
 
   // ✅ Filter visitors
@@ -238,16 +258,25 @@ setVisitors(prev =>
                     <td>{visitor.visitdate}</td>
                     <td>{formatTextTime(visitor.In_x002d_time)}</td>
                       <td>{visitor.Outtime ? formatTextTime(visitor.Outtime) : "—"}</td>
-  <td>
-    {!visitor.Outtime && (
-      <button
-        className={styles.btnSmall}
-        onClick={() => handleCheckout(visitor.Id)}
-      >
-        Check Out
-      </button>
-    )}
-  </td>
+<td>
+  {visitor.status?.toLowerCase() === "rejected" ? (
+    <>Rejected</>
+  ) : visitor.Outtime ? (
+    // ✅ After check-out, hide the button
+    <></>
+  ) : (
+    <button
+      className={styles.btnSmall}
+      onClick={() => handleCheckout(visitor)}
+    >
+      Check Out
+    </button>
+  )}
+</td>
+
+
+
+
 
                   </tr>
                 ))

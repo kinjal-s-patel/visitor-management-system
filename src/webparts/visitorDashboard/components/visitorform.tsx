@@ -33,8 +33,8 @@ const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [hostOptions, setHostOptions] = useState<IDropdownOption[]>([]);
-  const [manualHost, setManualHost] = useState<string>(""); 
-  const [isManualHost, setIsManualHost] = useState<boolean>(false);
+  // const [manualHost, setManualHost] = useState<string>(""); 
+  // const [isManualHost, setIsManualHost] = useState<boolean>(false);
 
   const sp: SPFI = spfi().using(SPFx(context));
 
@@ -105,7 +105,7 @@ const loadHostOptions = async () => {
   // ✅ Submit Form
   const handleSubmit = async () => {
   try {
-    const hostValue = isManualHost ? manualHost : formData.host;
+    // const hostValue = isManualHost ? manualHost : formData.host;
 
     await sp.web.lists.getByTitle("visitor-list").items.add({
       name: formData.name,
@@ -115,7 +115,8 @@ const loadHostOptions = async () => {
       Department: formData.Department,
       visitdate: formData.visitdate,
       In_x002d_time: formData.In_x002d_time,
-      host: hostValue, // ✅ This will now include manual or selected host
+    host: formData.host,
+
         status: "pending", // ✅ Automatically set status to Pending
     });
 
@@ -213,6 +214,7 @@ const loadHostOptions = async () => {
               type="email"
               value={formData.email}
               onChange={(e, val) => handleChange("email", val || "")}
+              required
             />
 
             <Dropdown
@@ -226,8 +228,25 @@ const loadHostOptions = async () => {
               required
             />
 
+            
+    <Dropdown
+  label="Host Email"
+  placeholder="Select host"
+  options={hostOptions}
+  selectedKey={formData.hostId}
+  onChange={(e, option) =>
+    setFormData((prev) => ({
+      ...prev,
+      hostId: option?.key.toString() || "",
+      host: option?.text || "",
+    }))
+  }
+  required
+/>
+
+
             {/* ✅ Host Dropdown */}
-<Dropdown
+{/* <Dropdown
   label="Host Email"
   placeholder="Select or add host"
   options={[...hostOptions, { key: "add_new", text: "➕ Add host manually" }]}
@@ -254,14 +273,14 @@ const loadHostOptions = async () => {
     }
   }}
   required
-/>
-
+/> */}
+{/* 
 {isManualHost && (
    <TextField label="Enter Host Email"
     placeholder="Type host email" value={manualHost}
      onChange={(e, val) => setManualHost(val || "")}
       required /> 
-      )}
+      )} */}
 
             <Dropdown
               label="Department"

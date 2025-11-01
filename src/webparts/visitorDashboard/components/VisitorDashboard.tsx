@@ -42,18 +42,21 @@ export interface IVisitorDashboardProps {
 }
 
 const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
- const [loading, setLoading] = React.useState(false); // start as false
+ const [loading, setLoading] = React.useState(true); // start as false
   const [todayVisitors, setTodayVisitors] = React.useState<IVisitorItem[]>([]);
   const [pendingApprovals, setPendingApprovals] = React.useState<IVisitorItem[]>([]);
   const [checkedIn, setCheckedIn] = React.useState<IVisitorItem[]>([]);
   const [recentActivity, setRecentActivity] = React.useState<IVisitorItem[]>([]);
   const [error, setError] = React.useState<string | null>(null);
+  const [rejectedVisitors, setRejectedVisitors] = React.useState<IVisitorItem[]>([]);
+
 
   const navigate = useNavigate();
   const sp = React.useMemo(() => spfi().using(SPFx(context)), [context]);
 
   const loadAll = async () => {
-    setLoading(false);
+    setLoading(true);
+    
     setError(null);
 
     try {
@@ -82,13 +85,39 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
       const typedVisitors = visitors as IVisitorItem[];
 
       setTodayVisitors(typedVisitors);
-      setPendingApprovals(typedVisitors.filter(v => v?.status === 'Pending'));
+      setPendingApprovals(typedVisitors.filter(v => v?.status === 'pending'));
       setCheckedIn(typedVisitors.filter(v => v?.status === 'Checked-in'));
-      setRecentActivity(typedVisitors.slice(0, 10));
+      setRejectedVisitors(typedVisitors.filter(v => v?.status?.toLowerCase() === 'rejected'));
+      setRecentActivity(
+  typedVisitors
+    .filter(v => ['checked-in', 'pending', 'rejected'].includes(v?.status?.toLowerCase() || ''))
+    .slice(0, 10)
+);
 
     } catch (e) {
       console.error(e);
-      setError('Welcome to the Visitor Management Dashboard!');
+setError(`
+  <p>
+    Welcome to the Visitor Management System! This solution helps your organization register visitors, manage approvals, and track check-ins and check-outs seamlessly.
+  </p>
+  <p>
+    <strong>Note:</strong> Access to visitor and host data requires an active Microsoft 365 work account within the organization and the necessary SharePoint permissions.
+  </p>
+  <p>
+    If you are unable to view visitor data, please contact our administrator or IT support team to request access or permissions to use this app.
+  </p>
+  <div style="margin-top: 12px;">
+    <a href="mailto:consultant@jmsadvisory.in" style="color:#0078d4;text-decoration:underline;margin-right:16px;">
+      Contact Administrator
+    </a>
+         <a href="mailto:kinjal@jmsadvisory.in?subject=Request%20Access%20to%20Visitor%20Management%20System" 
+         style="color:#0078d4;text-decoration:underline;margin-right:16px;">
+      Request Access
+    </a>
+  </div>
+`);
+
+
     } finally {
       setLoading(false);
     }
@@ -185,7 +214,13 @@ return (
       </div>
 
       {/* Error */}
-      {error && <div className={styles.visitorDashboard__error}>{error}</div>}
+      {error && (
+  <div
+    className={styles.visitorDashboard__error}
+    dangerouslySetInnerHTML={{ __html: error }}
+  />
+)}
+
 
       {/* KPIs */}
       <div className={styles.visitorDashboard__kpis}>
@@ -218,6 +253,17 @@ return (
             <p>{checkedIn.length}</p>
           </div>
         </div>
+
+        <div className={`${styles.kpiCard} ${styles.kpiCardRed}`}>
+  <div className={styles.kpiCard__icon}>
+    <Alert24Regular />
+  </div>
+  <div className={styles.kpiCard__content}>
+    <h3>Rejected</h3>
+    <p>{rejectedVisitors.length}</p>
+  </div>
+</div>
+
       </div>
 
       {/* Activity */}

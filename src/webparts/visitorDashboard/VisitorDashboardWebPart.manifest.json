@@ -9,16 +9,16 @@
   "manifestVersion": 2,
 
   "requiresCustomScript": false,
-  "supportedHosts": ["SharePointWebPart", "SharePointFullPage"],
+  "supportedHosts": ["SharePointFullPage"],
   "supportsThemeVariants": true,
+
 
  "preconfiguredEntries": [{
   "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
   "group": { "default": "Advanced" },
   "title": { "default": "Visitor Management System" },
   "description":  { "default": "Visitor Management System — manage visitor check-ins, approvals, host notifications. Ideal for reception/HR in mid-to-large organizations."},
-  "officeFabricIconFontName": "Page",
-  "iconImageUrl": "assets/vms-icon.png",
+  "iconImageUrl": "./assets/vms-icon.png",
   "properties": {
     "description": "Visitor Dashboard"
   }

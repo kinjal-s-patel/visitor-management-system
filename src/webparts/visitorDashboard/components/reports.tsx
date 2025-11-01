@@ -204,6 +204,7 @@ const getCountByStatus = (status: string) => {
  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
   <option value="All">All Statuses</option>
   <option value="Pending">Pending</option>
+    <option value="Rejected">Rejected</option>
   <option value="Checked In">Checked In</option>
 </select>
 
@@ -218,6 +219,7 @@ const getCountByStatus = (status: string) => {
             <div className={styles.card}><strong>Total Visitors</strong><span>{visitors.length}</span></div>
             <div className={styles.card}><strong>Pending</strong><span>{getCountByStatus("Pending")}</span></div>
             <div className={styles.card}><strong>Checked In</strong>  <span>{getCountByStatus("Checked In")}</span></div>
+            <div className={styles.card}><strong>Rejected</strong>  <span>{getCountByStatus("Rejected")}</span></div>
            
           </div>
 

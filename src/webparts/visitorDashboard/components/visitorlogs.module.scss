@@ -1,151 +1,316 @@
-.container {
-  background-color: #f4f7f6;
-  font-family: 'Segoe UI', sans-serif;
-  min-height: 100vh;
-  width: 100%;
-  overflow-x: auto;
-  padding-bottom: 50px;
-}
-// ========== HEADER ========== //
-.visitorDashboard {
-  font-family: "Segoe UI", sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f7f6; // Soft mint background
-  color: #1f1f1f;
+// ==========================================================
+// Visitor Logs – Sidebar layout (matches Dashboard / Form)
+// ==========================================================
+
+$ink: #0f2740;
+$primary: #0e7c86;
+$primary-dark: #0a5f67;
+$primary-tint: #e3f3f4;
+$page: #f3f6f9;
+$surface: #ffffff;
+$line: #e2e8ef;
+$field-line: #cbd5e1;
+$text: #1c2b3a;
+$muted: #64748b;
+
+$success: #15803d;
+$success-tint: #e2f6e9;
+$danger: #b91c1c;
+$danger-tint: #fde8e8;
+
+$radius: 12px;
+$shadow: 0 1px 2px rgba(15, 39, 64, 0.06), 0 4px 12px rgba(15, 39, 64, 0.04);
+$sidebar-width: 240px;
+
+// ---------- App shell ---------- //
+.app {
+  display: grid;
+  grid-template-columns: $sidebar-width 1fr;
+  height: 100%;
+  font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color: $text;
+  background-color: $page;
+  -webkit-font-smoothing: antialiased;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 }
 
-.dashboardHeader {
+// ---------- Sidebar ---------- //
+.sidebar {
   display: flex;
+  flex-direction: column;
+  background-color: $ink;
+  color: #c9d6e4;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
 
-  justify-content: space-between;
-  
+.brand {
+  display: flex;
   align-items: center;
-  padding: 20px 32px;
-  background-color: #e1f4f0; // Light mint
-  border-bottom: 1px solid #d0e5e2;
-
-  &__left h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-    color: #1a3b2f;
-  }
-
-  &__title {
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #165a43;
-  }
-
-  &__right {
-    font-size: 16px;
-    color: #444;
-  }
-
-  &__userName {
-    font-weight: 600;
-    color: #198754;
-  }
-}
-
-/* NavBar Section */
-.visitorDashboard__actions {
-   display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
   gap: 12px;
-  margin-top: 16px;
-  padding-right: 16px; /* Give space from right edge */
-  width: 100%;
-  box-sizing: border-box;
+  padding: 0 8px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.btn {
-  padding: 10px 18px;
-  background-color: #014421;
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 14px;
+.brandLogo {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: $primary;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 20px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: transparent;
+  color: #c9d6e4;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  white-space: nowrap; // Prevent text from wrapping
+  transition: background-color 0.15s ease, color 0.15s ease;
 
   &:hover {
-    background-color: #146c43;
-    transform: translateY(-1px);
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
   }
 
-  &:focus {
-    outline: 2px solid #b2dfdb;
+  &:focus-visible {
+    outline: 2px solid #7fd3da;
+    outline-offset: 2px;
   }
 }
 
+.navItemActive {
+  background-color: $primary;
+  color: #fff;
 
-// /* Table Title */
-// .heading {
-//    padding: 24px 32px 10px;
-//   color: #014421;
-//   font-size: 22px;
-//   font-weight: 600;
-// }
+  &:hover {
+    background-color: $primary;
+  }
+}
 
-/* Heading row */
-.headingRow {
+.navIcon {
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.sidebarUser {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: $primary-tint;
+  color: $primary-dark;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarUserText {
+  min-width: 0;
+}
+
+.sidebarUserName {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarUserRole {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #8ea3ba;
+}
+
+// ---------- Main area ---------- //
+.main {
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 32px 12px; /* reduce space above/below */
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px 32px;
+  background-color: $surface;
+  border-bottom: 1px solid $line;
 }
 
-/* Heading text */
-.heading {
-  margin: 0; /* remove extra margin */
-  font-size: 20px;
+.pageTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.pageSubtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: $muted;
+}
+
+.btnPrimary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary;
+  color: #fff;
+  font-size: 14px;
   font-weight: 600;
-  color: #014421;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: $primary-dark;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(14, 124, 134, 0.35);
+    outline-offset: 2px;
+  }
 }
 
-/* Search box wrapper */
+.content {
+  flex: 1;
+  padding: 24px 32px 0;
+}
+
+// ---------- Records panel ---------- //
+.panel {
+  background-color: $surface;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid $line;
+}
+
+.panelTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.panelCount {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background-color: $primary-tint;
+  color: $primary-dark;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+// Search
 .searchBox {
   position: relative;
   display: flex;
   align-items: center;
-  width: 240px;     /* slightly smaller so it doesn’t float too wide */
+  width: 280px;
+  max-width: 100%;
+
+  input {
+    width: 100%;
+    height: 38px;
+    padding: 0 14px 0 38px;
+    border: 1px solid $field-line;
+    border-radius: 8px;
+    background-color: #fff;
+    font-size: 14px;
+    color: $text;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba(14, 124, 134, 0.18);
+    }
+  }
 }
 
-/* Search input */
-.searchBox input {
-  width: 100%;
-  padding: 7px 12px 7px 34px; /* left padding for icon */
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  font-size: 13px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.searchBox input:focus {
-  outline: none;
-  border-color: #0078d4;
-  box-shadow: 0 0 4px rgba(0, 120, 212, 0.4);
-}
-
-/* Search icon */
 .searchIcon {
   position: absolute;
-  left: 12px;
-  color: #666;
+  left: 13px;
+  color: $muted;
   font-size: 14px;
   pointer-events: none;
 }
 
-/* Table Section */
-.tableContainer {
-  padding: 0 32px;
+// ---------- Table ---------- //
+.tableWrap {
   overflow-x: auto;
 }
 
@@ -153,107 +318,236 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  margin-top: 10px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-
-  th,
-  td {
-    border: 1px solid #dfe5dc;
-    padding: 12px 10px;
-    text-align: left;
-  }
 
   th {
-    background-color: #014421;
-    color: #fff;
+    padding: 11px 16px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid $line;
+    text-align: left;
+    font-size: 12px;
     font-weight: 600;
+    color: $muted;
+    white-space: nowrap;
   }
 
-  tr:nth-child(odd) {
-    background-color: #f8fefb; // light mint for odd rows
-  }
-
-  tr:nth-child(even) {
-    background-color: #eafaf2; // slightly deeper mint for even rows
-  }
-
-  tr:hover {
-    background-color: #d4f4e2; // hover highlight
-  }
-
-  td svg {
-    margin-right: 5px;
+  td {
+    padding: 13px 16px;
+    border-bottom: 1px solid #eef2f6;
     vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background-color: #f8fafc;
   }
 }
-.iconText {
-  display: flex;
-  align-items: center;
-  gap: 4px; // or 8px if you want a bit more spacing
-}
-.iconWrapper {
-  display: inline-flex;
-  align-items: center;
-  margin-right: 6px;
-}
 
-.pagination {
-  margin: 20px 0;
+.person {
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 12px;
+}
 
-  button {
-    padding: 6px 14px;
-    border: none;
-    background: #0c502d;
-    color: #fff;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
+.personName {
+  margin: 0;
+  font-weight: 600;
+  color: $text;
+}
 
-    &:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
+.personSub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: $muted;
+}
 
-    &:hover:not(:disabled) {
-      background: #7dcfa5;
-    }
-  }
+.iconText {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconBadge {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background-color: $primary-tint;
+  color: $primary-dark;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.muted {
+  color: $muted;
+}
+
+.emptyCell {
+  padding: 40px 20px !important;
+  text-align: center;
+  color: $muted;
+}
+
+// ---------- Pills & buttons ---------- //
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pillRejected {
+  background-color: $danger-tint;
+  color: $danger;
+}
+
+.pillDone {
+  background-color: $success-tint;
+  color: $success;
 }
 
 .btnSmall {
-  background: #165a43;
-  color: #fff;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: 6px 14px;
+  border: 1px solid $primary;
+  border-radius: 8px;
+  background-color: $primary-tint;
+  color: $primary-dark;
   font-size: 13px;
-  transition: 0.2s;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 
   &:hover {
-    background: #0e3e2e;
+    background-color: $primary;
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(14, 124, 134, 0.35);
+    outline-offset: 2px;
   }
 
   &:disabled {
-    background: #ccc;
+    background-color: #eef2f6;
+    border-color: $line;
+    color: #94a3b8;
     cursor: not-allowed;
   }
 }
 
+// ---------- Pagination ---------- //
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid $line;
+  background-color: #f8fafc;
+}
 
-/* Footer */
+.paginationInfo {
+  font-size: 13px;
+  color: $muted;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: $text;
+
+  button {
+    padding: 7px 14px;
+    border: 1px solid $field-line;
+    border-radius: 8px;
+    background-color: #fff;
+    color: $ink;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      border-color: $primary;
+      color: $primary-dark;
+    }
+
+    &:disabled {
+      background-color: #eef2f6;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ---------- Footer ---------- //
 .footer {
-  padding: 20px 32px;
+  margin-top: 8px;
+  padding: 20px 32px 24px;
   text-align: center;
   font-size: 12px;
-  color: #666;
-  border-top: 1px solid #ccc;
-  margin-top: 40px;
+  color: $muted;
+}
+
+// ---------- Responsive ---------- //
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 12px;
+    overflow-x: auto;
+  }
+
+  .brand {
+    padding: 0 12px 0 0;
+    border-bottom: none;
+  }
+
+  .brandName,
+  .sidebarUser {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+    margin-top: 0;
+  }
+
+  .navItem {
+    white-space: nowrap;
+    width: auto;
+  }
+
+  .topbar,
+  .content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .searchBox {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navItem,
+  .btnPrimary,
+  .btnSmall {
+    transition: none;
+  }
 }

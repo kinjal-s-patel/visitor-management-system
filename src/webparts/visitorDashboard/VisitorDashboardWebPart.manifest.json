@@ -9,7 +9,7 @@
   "manifestVersion": 2,
 
   "requiresCustomScript": false,
-  "supportedHosts": ["SharePointFullPage"],
+  "supportedHosts": ["SharePointFullPage","SharePointWebPart"],
   "supportsThemeVariants": true,
 
 

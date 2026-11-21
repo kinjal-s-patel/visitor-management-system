@@ -5,7 +5,13 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import styles from './visitorlogs.module.scss';
-import { FaBuilding, FaBriefcase, FaSearch } from "react-icons/fa"; // ✅ Added FaSearch
+import { FaBuilding, FaBriefcase, FaSearch } from "react-icons/fa";
+import {
+  Home24Regular,
+  PersonAdd24Regular,
+  TextBulletList24Regular,
+  DataBarVertical24Regular,
+} from '@fluentui/react-icons';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 export interface IVisitorDashboardProps {
@@ -20,7 +26,6 @@ interface IVisitor {
   number: string;
   purposeofvisit: string;
   email: string;
-  hostname: { Title: string };
   Department: string;
   visitdate: string;
   In_x002d_time: string;
@@ -28,6 +33,10 @@ interface IVisitor {
   status?: string;
 
 }
+
+// UI-only helper (no business logic)
+const getInitial = (text?: string): string =>
+  (text || '?').trim().charAt(0).toUpperCase();
 
 const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
   const navigate = useNavigate();
@@ -51,14 +60,12 @@ const ViewVisitors: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
             "host",
             "purposeofvisit",
             "email",
-            "hostname/Title",
             "Department",
             "visitdate",
             "In_x002d_time",
             "Outtime",
             "status"
           )
-          .expand("hostname")
           .orderBy("Id", false)();
 
         setVisitors(items);
@@ -122,7 +129,7 @@ const handleCheckout = async (visitor: IVisitor) => {
   const filteredVisitors = visitors.filter((v) =>
     v.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     v.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.hostname?.Title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.host?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     v.Department?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -172,140 +179,202 @@ const handleCheckout = async (visitor: IVisitor) => {
     document.head.appendChild(style);
   }, []);
 
+  const userName = context.pageContext.user.displayName;
+
+  // Presentational range text for the pagination bar
+  const rangeStart = filteredVisitors.length === 0 ? 0 : indexOfFirstRecord + 1;
+  const rangeEnd = Math.min(indexOfLastRecord, filteredVisitors.length);
+
   return (
     <div style={{
       width: '100vw',
       height: '100vh',
       margin: 0,
       padding: 0,
-      overflow: 'auto',
-      backgroundColor: '#fff',
+      overflow: 'hidden',
+      backgroundColor: '#f3f6f9',
       position: 'fixed',
       top: 0,
       left: 0,
       zIndex: 9999
     }}>
-      <div className={styles.visitorDashboard}>
-        {/* Header */}
-        <header className={styles.dashboardHeader}>
-          <div className={styles.dashboardHeader__left}>
-            <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
+      <div className={styles.app}>
+
+        {/* ============ SIDEBAR ============ */}
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}>
+            <span className={styles.brandLogo}>V</span>
+            <p className={styles.brandName}>Visitor Management System</p>
           </div>
-          <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}>
-              Welcome, {context.pageContext.user.displayName}
-            </span>
+
+          <nav className={styles.nav}>
+            <button className={styles.navItem} onClick={() => navigate('/')}>
+              <span className={styles.navIcon}><Home24Regular /></span>
+              Dashboard
+            </button>
+            <button className={styles.navItem} onClick={() => navigate('/visitorform')}>
+              <span className={styles.navIcon}><PersonAdd24Regular /></span>
+              Add Visitor
+            </button>
+            <button className={`${styles.navItem} ${styles.navItemActive}`}>
+              <span className={styles.navIcon}><TextBulletList24Regular /></span>
+              View Visitor
+            </button>
+            <button className={styles.navItem} onClick={() => navigate('/reports')}>
+              <span className={styles.navIcon}><DataBarVertical24Regular /></span>
+              Reports
+            </button>
+          </nav>
+
+          <div className={styles.sidebarUser}>
+            <span className={styles.avatar}>{getInitial(userName)}</span>
+            <div className={styles.sidebarUserText}>
+              <p className={styles.sidebarUserName}>{userName}</p>
+              <p className={styles.sidebarUserRole}>Signed in</p>
+            </div>
           </div>
-        </header>
+        </aside>
 
-        {/* Navigation */}
-        <div className={styles.visitorDashboard__actions}>
-          <button className={styles.btn} onClick={() => navigate('/visitorform')}>Add Visitor</button>
-          <button className={styles.btn} onClick={() => navigate('/reports')}>Reports</button>
-          <button className={styles.btn} onClick={() => navigate('/')}>Dashboard</button>
-        </div>
+        {/* ============ MAIN ============ */}
+        <main className={styles.main}>
 
-        {/* Heading + Search */}
-        <div className={styles.headingRow}>
-          <h2 className={styles.heading}>Visitor Records</h2>
-          <div className={styles.searchBox}>
-            <FaSearch className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search visitors..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1); // reset page when searching
-              }}
-            />
+          {/* Top bar */}
+          <div className={styles.topbar}>
+            <div>
+              <h1 className={styles.pageTitle}>Visitor Records</h1>
+              <p className={styles.pageSubtitle}>
+                Search, review and check out visitors
+              </p>
+            </div>
+            <button className={styles.btnPrimary} onClick={() => navigate('/visitorform')}>
+              + Add Visitor
+            </button>
           </div>
-        </div>
 
-        {/* Visitor Table */}
-        <div className={styles.tableContainer}>
-          <table className={styles.visitorTable}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Contact Number</th>
-                <th>Email</th>
-                <th>Purpose</th>
-                <th>Host</th>
-                <th>Department</th>
-                <th>Date</th>
-                <th>In-Time</th>
-                <th>Out-Time</th>
-                <th>check out</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentRecords.length > 0 ? (
-                currentRecords.map(visitor => (
-                  <tr key={visitor.Id}>
-                    <td>{visitor.name}</td>
-                    <td>{visitor.number}</td>
-                    <td>{visitor.email}</td>
-                    <td className={styles.iconText}>
-                      <FaBriefcase style={{ color: "#165a43", marginRight: "6px" }} />
-                      {visitor.purposeofvisit}
-                    </td>
-                    <td>{visitor.host || "N/A"}</td>
-                    <td className={styles.iconText}>
-                      <FaBuilding style={{ color: "#165a43", marginRight: "6px" }} />
-                      {visitor.Department}
-                    </td>
-                    <td>{visitor.visitdate}</td>
-                    <td>{formatTextTime(visitor.In_x002d_time)}</td>
-                      <td>{visitor.Outtime ? formatTextTime(visitor.Outtime) : "—"}</td>
-<td>
-  {visitor.status?.toLowerCase() === "rejected" ? (
-    <>Rejected</>
-  ) : visitor.Outtime ? (
-    // ✅ After check-out, hide the button
-    <></>
-  ) : (
-    <button
-      className={styles.btnSmall}
-      onClick={() => handleCheckout(visitor)}
-    >
-      Check Out
-    </button>
-  )}
-</td>
+          <div className={styles.content}>
+            <section className={styles.panel}>
 
+              {/* Panel header: title + search */}
+              <div className={styles.panelHeader}>
+                <div className={styles.panelTitleWrap}>
+                  <h3 className={styles.panelTitle}>All Visitors</h3>
+                  <span className={styles.panelCount}>{filteredVisitors.length}</span>
+                </div>
+                <div className={styles.searchBox}>
+                  <FaSearch className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search visitors..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1); // reset page when searching
+                    }}
+                  />
+                </div>
+              </div>
 
+              {/* Visitor Table */}
+              <div className={styles.tableWrap}>
+                <table className={styles.visitorTable}>
+                  <thead>
+                    <tr>
+                      <th>Visitor</th>
+                      <th>Contact Number</th>
+                      <th>Purpose</th>
+                      <th>Host</th>
+                      <th>Department</th>
+                      <th>Date</th>
+                      <th>In-Time</th>
+                      <th>Out-Time</th>
+                      <th>Check Out</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentRecords.length > 0 ? (
+                      currentRecords.map(visitor => (
+                        <tr key={visitor.Id}>
+                          <td>
+                            <div className={styles.person}>
+                              <span className={styles.avatar}>{getInitial(visitor.name)}</span>
+                              <div>
+                                <p className={styles.personName}>{visitor.name}</p>
+                                <p className={styles.personSub}>{visitor.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{visitor.number}</td>
+                          <td>
+                            <span className={styles.iconText}>
+                              <span className={styles.iconBadge}><FaBriefcase /></span>
+                              {visitor.purposeofvisit}
+                            </span>
+                          </td>
+                          <td>{visitor.host || "N/A"}</td>
+                          <td>
+                            <span className={styles.iconText}>
+                              <span className={styles.iconBadge}><FaBuilding /></span>
+                              {visitor.Department}
+                            </span>
+                          </td>
+                          <td>{visitor.visitdate}</td>
+                          <td>{formatTextTime(visitor.In_x002d_time)}</td>
+                          <td>
+                            {visitor.Outtime
+                              ? formatTextTime(visitor.Outtime)
+                              : <span className={styles.muted}>—</span>}
+                          </td>
+                          <td>
+                            {visitor.status?.toLowerCase() === "rejected" ? (
+                              <span className={`${styles.pill} ${styles.pillRejected}`}>Rejected</span>
+                            ) : visitor.Outtime ? (
+                              // ✅ After check-out, hide the button
+                              <span className={`${styles.pill} ${styles.pillDone}`}>Checked out</span>
+                            ) : (
+                              <button
+                                className={styles.btnSmall}
+                                onClick={() => handleCheckout(visitor)}
+                              >
+                                Check Out
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={9} className={styles.emptyCell}>
+                          No visitors found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
+              {/* Pagination */}
+              <div className={styles.pagination}>
+                <span className={styles.paginationInfo}>
+                  Showing {rangeStart}–{rangeEnd} of {filteredVisitors.length}
+                </span>
+                <div className={styles.paginationControls}>
+                  <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
+                    ← Previous
+                  </button>
+                  <span> Page {currentPage} of {totalPages || 1} </span>
+                  <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0}>
+                    Next →
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
 
-
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} style={{ textAlign: "center", padding: "20px" }}>
-                    No visitors found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className={styles.pagination}>
-          <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
-            ⬅ Previous
-          </button>
-          <span> Page {currentPage} of {totalPages || 1} </span>
-          <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0}>
-            Next ➡
-          </button>
-        </div>
-
-        {/* Footer */}
-        <footer className={styles.footer}>
-          © 2025 Visitor Management System. All rights reserved.
-        </footer>
+          {/* Footer */}
+          <footer className={styles.footer}>
+            © 2025 Visitor Management System. All rights reserved.
+          </footer>
+        </main>
       </div>
     </div>
   );

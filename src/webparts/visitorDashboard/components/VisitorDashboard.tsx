@@ -4,15 +4,23 @@ import {
   SpinnerSize,
 } from "@fluentui/react";
 import { spfi, SPFx } from "@pnp/sp";
-import { People24Regular, Alert24Regular, CheckmarkCircle24Regular } from '@fluentui/react-icons';
-
+import {
+  People24Regular,
+  Alert24Regular,
+  CheckmarkCircle24Regular,
+  DismissCircle24Regular,
+  Home24Regular,
+  PersonAdd24Regular,
+  TextBulletList24Regular,
+  DataBarVertical24Regular,
+} from '@fluentui/react-icons';
 
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/fields";
 import "@pnp/sp/site-users/web";
-import * as moment from "moment";
+import moment from "moment";
 import styles from "./VisitorDashboard.module.scss";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +33,7 @@ interface IVisitorItem {
   email: string;
   contactnumber: string;
   purposeofvisit: string;
-  host: { Title: string; EMail: string };
+  host: string;
   VisitDate?: string;
   pirposeofvisit: string;
   status?: string;
@@ -41,8 +49,28 @@ export interface IVisitorDashboardProps {
   userDisplayName: string;
 }
 
+// ---------- UI-only helpers (no business logic) ---------- //
+const getInitial = (text?: string): string =>
+  (text || '?').trim().charAt(0).toUpperCase();
+
+const getStatusClass = (status?: string): string => {
+  const s = (status || '').toLowerCase();
+  if (s === 'pending') return styles.statusPending;
+  if (s === 'checked-in') return styles.statusCheckedin;
+  if (s === 'rejected') return styles.statusRejected;
+  return '';
+};
+
+const getDotClass = (status?: string): string => {
+  const s = (status || '').toLowerCase();
+  if (s === 'pending') return styles.dotPending;
+  if (s === 'checked-in') return styles.dotChecked;
+  if (s === 'rejected') return styles.dotRejected;
+  return '';
+};
+
 const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
- const [loading, setLoading] = React.useState(true); // start as false
+  const [loading, setLoading] = React.useState(true);
   const [todayVisitors, setTodayVisitors] = React.useState<IVisitorItem[]>([]);
   const [pendingApprovals, setPendingApprovals] = React.useState<IVisitorItem[]>([]);
   const [checkedIn, setCheckedIn] = React.useState<IVisitorItem[]>([]);
@@ -50,13 +78,11 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
   const [error, setError] = React.useState<string | null>(null);
   const [rejectedVisitors, setRejectedVisitors] = React.useState<IVisitorItem[]>([]);
 
-
   const navigate = useNavigate();
   const sp = React.useMemo(() => spfi().using(SPFx(context)), [context]);
 
   const loadAll = async () => {
     setLoading(true);
-    
     setError(null);
 
     try {
@@ -71,13 +97,12 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
           'email',
           'number',
           'purposeofvisit',
+          'host',
           'Department',
           'status',
           'visitdate',
           'Created',
-          'hostname/Title'
         )
-        .expand('hostname')
         .filter(`visitdate ge datetime'${todayStart}' and visitdate le datetime'${todayEnd}'`)
         .orderBy('Created', false)
         .top(100)();
@@ -89,14 +114,14 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
       setCheckedIn(typedVisitors.filter(v => v?.status === 'Checked-in'));
       setRejectedVisitors(typedVisitors.filter(v => v?.status?.toLowerCase() === 'rejected'));
       setRecentActivity(
-  typedVisitors
-    .filter(v => ['checked-in', 'pending', 'rejected'].includes(v?.status?.toLowerCase() || ''))
-    .slice(0, 10)
-);
+        typedVisitors
+          .filter(v => ['checked-in', 'pending', 'rejected'].indexOf(v?.status?.toLowerCase() || '') !== -1)
+          .slice(0, 10)
+      );
 
     } catch (e) {
       console.error(e);
-setError(`
+      setError(`
   <p>
     Welcome to the Visitor Management System! This solution helps your organization register visitors, manage approvals, and track check-ins and check-outs seamlessly.
   </p>
@@ -110,13 +135,12 @@ setError(`
     <a href="mailto:consultant@jmsadvisory.in" style="color:#0078d4;text-decoration:underline;margin-right:16px;">
       Contact Administrator
     </a>
-         <a href="mailto:kinjal@jmsadvisory.in?subject=Request%20Access%20to%20Visitor%20Management%20System" 
-         style="color:#0078d4;text-decoration:underline;margin-right:16px;">
+    <a href="mailto:kinjal@jmsadvisory.in?subject=Request%20Access%20to%20Visitor%20Management%20System"
+       style="color:#0078d4;text-decoration:underline;margin-right:16px;">
       Request Access
     </a>
   </div>
 `);
-
 
     } finally {
       setLoading(false);
@@ -177,127 +201,257 @@ setError(`
     );
   }
 
-return (
-  <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
-    <div className={styles.visitorDashboard}>
-      {/* Header */}
-      <header className={styles.dashboardHeader}>
-        <div className={styles.dashboardHeader__left}>
-          <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
-        </div>
-        <div className={styles.dashboardHeader__right}>
-          <span className={styles.dashboardHeader__userName}>
-            Welcome, {context.pageContext.user.displayName}
-          </span>
-        </div>
-      </header>
+  // Presentational values derived from existing state
+  const userName = context.pageContext.user.displayName;
+  const total = todayVisitors.length;
+  const pct = (n: number): string => (total > 0 ? `${(n / total) * 100}%` : '0%');
 
-      {/* Sub Header */}
-      <div className={styles.visitorDashboard__header}>
-        <div>
-          <h1 className={styles.visitorDashboard__title}>Visitor Dashboard</h1>
-          <p className={styles.visitorDashboard__subtitle}>
-            Overview of today’s visitor activity
-          </p>
-        </div>
-        <div className={styles.visitorDashboard__actions}>
-          <button className={styles.btn} onClick={() => navigate("/visitorform")}>
-            Add Visitor
-          </button>
-          <button className={styles.btn} onClick={() => navigate("/visitorlogs")}>
-            View Visitor
-          </button>
-          <button className={styles.btn} onClick={() => navigate("/reports")}>
-            Reports
-          </button>
-        </div>
-      </div>
+  return (
+    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden', backgroundColor: '#f3f6f9', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
+      <div className={styles.app}>
 
-      {/* Error */}
-      {error && (
-  <div
-    className={styles.visitorDashboard__error}
-    dangerouslySetInnerHTML={{ __html: error }}
-  />
-)}
-
-
-      {/* KPIs */}
-      <div className={styles.visitorDashboard__kpis}>
-        <div className={`${styles.kpiCard} ${styles.kpiCardPlum}`}>
-          <div className={styles.kpiCard__icon}>
-            <People24Regular />
+        {/* ============ SIDEBAR ============ */}
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}>
+            <span className={styles.brandLogo}>V</span>
+            <p className={styles.brandName}>Visitor Management System</p>
           </div>
-          <div className={styles.kpiCard__content}>
-            <h3>Total Visitors Today</h3>
-            <p>{todayVisitors.length}</p>
-          </div>
-        </div>
 
-        <div className={`${styles.kpiCard} ${styles.kpiCardOrange}`}>
-          <div className={styles.kpiCard__icon}>
-            <Alert24Regular />
-          </div>
-          <div className={styles.kpiCard__content}>
-            <h3>Pending Approvals</h3>
-            <p>{pendingApprovals.length}</p>
-          </div>
-        </div>
+          <nav className={styles.nav}>
+            <button className={`${styles.navItem} ${styles.navItemActive}`}>
+              <span className={styles.navIcon}><Home24Regular /></span>
+              Dashboard
+            </button>
+            <button className={styles.navItem} onClick={() => navigate("/visitorform")}>
+              <span className={styles.navIcon}><PersonAdd24Regular /></span>
+              Add Visitor
+            </button>
+            <button className={styles.navItem} onClick={() => navigate("/visitorlogs")}>
+              <span className={styles.navIcon}><TextBulletList24Regular /></span>
+              View Visitor
+            </button>
+            <button className={styles.navItem} onClick={() => navigate("/reports")}>
+              <span className={styles.navIcon}><DataBarVertical24Regular /></span>
+              Reports
+            </button>
+          </nav>
 
-        <div className={`${styles.kpiCard} ${styles.kpiCardMint}`}>
-          <div className={styles.kpiCard__icon}>
-            <CheckmarkCircle24Regular />
+          <div className={styles.sidebarUser}>
+            <span className={styles.avatar}>{getInitial(userName)}</span>
+            <div className={styles.sidebarUserText}>
+              <p className={styles.sidebarUserName}>{userName}</p>
+              <p className={styles.sidebarUserRole}>Signed in</p>
+            </div>
           </div>
-          <div className={styles.kpiCard__content}>
-            <h3>Checked In</h3>
-            <p>{checkedIn.length}</p>
-          </div>
-        </div>
+        </aside>
 
-        <div className={`${styles.kpiCard} ${styles.kpiCardRed}`}>
-  <div className={styles.kpiCard__icon}>
-    <Alert24Regular />
-  </div>
-  <div className={styles.kpiCard__content}>
-    <h3>Rejected</h3>
-    <p>{rejectedVisitors.length}</p>
-  </div>
-</div>
+        {/* ============ MAIN ============ */}
+        <main className={styles.main}>
 
-      </div>
-
-      {/* Activity */}
-      <div className={styles.visitorDashboard__activitySection}>
-        <div className={styles.activityCard}>
-          <h3>Pending Approvals</h3>
-          {pendingApprovals.length === 0 ? (
-            <p>No pending check-in requests.</p>
-          ) : (
-            pendingApprovals.map((visitor, index) => (
-              <p key={index}>
-                {visitor.name} - {visitor.purposeofvisit}
+          {/* Top bar */}
+          <div className={styles.topbar}>
+            <div>
+              <h1 className={styles.pageTitle}>Visitor Dashboard</h1>
+              <p className={styles.pageDate}>
+                Overview of today’s visitor activity · {moment().format('dddd, D MMMM YYYY')}
               </p>
-            ))
-          )}
-        </div>
+            </div>
+            <button className={styles.btnPrimary} onClick={() => navigate("/visitorform")}>
+              + Add Visitor
+            </button>
+          </div>
 
-        <div className={styles.activityCard}>
-          <h3>Recent Activity</h3>
-          {recentActivity.length === 0 ? (
-            <p>No recent activity today.</p>
-          ) : (
-            recentActivity.map((visitor, index) => (
-              <p key={index}>
-                {visitor.name} - {visitor.status}
-              </p>
-            ))
-          )}
-        </div>
-      </div>
+          <div className={styles.content}>
 
-        <footer className={styles.footer}>
-          © 2025 Visitor Management System. All rights reserved.
-        </footer>
+            {/* Welcome banner */}
+            <section className={styles.banner}>
+              <div>
+                <h2 className={styles.bannerTitle}>Welcome, {userName}</h2>
+                <p className={styles.bannerText}>
+                  {pendingApprovals.length} pending approval{pendingApprovals.length === 1 ? '' : 's'} need your attention today.
+                </p>
+              </div>
+              <div className={styles.bannerStat}>
+                <span className={styles.bannerStatNumber}>{total}</span>
+                <span className={styles.bannerStatLabel}>visitors today</span>
+              </div>
+            </section>
+
+            {/* Error */}
+            {error && (
+              <div
+                className={styles.errorBox}
+                dangerouslySetInnerHTML={{ __html: error }}
+              />
+            )}
+
+            {/* KPIs */}
+            <section className={styles.kpiRow}>
+              <div className={`${styles.kpi} ${styles.kpiTotal}`}>
+                <div className={styles.kpiTop}>
+                  <h3 className={styles.kpiLabel}>Total Visitors Today</h3>
+                  <span className={styles.kpiIcon}><People24Regular /></span>
+                </div>
+                <p className={styles.kpiValue}>{todayVisitors.length}</p>
+              </div>
+
+              <div className={`${styles.kpi} ${styles.kpiPending}`}>
+                <div className={styles.kpiTop}>
+                  <h3 className={styles.kpiLabel}>Pending Approvals</h3>
+                  <span className={styles.kpiIcon}><Alert24Regular /></span>
+                </div>
+                <p className={styles.kpiValue}>{pendingApprovals.length}</p>
+              </div>
+
+              <div className={`${styles.kpi} ${styles.kpiChecked}`}>
+                <div className={styles.kpiTop}>
+                  <h3 className={styles.kpiLabel}>Checked In</h3>
+                  <span className={styles.kpiIcon}><CheckmarkCircle24Regular /></span>
+                </div>
+                <p className={styles.kpiValue}>{checkedIn.length}</p>
+              </div>
+
+              <div className={`${styles.kpi} ${styles.kpiRejected}`}>
+                <div className={styles.kpiTop}>
+                  <h3 className={styles.kpiLabel}>Rejected</h3>
+                  <span className={styles.kpiIcon}><DismissCircle24Regular /></span>
+                </div>
+                <p className={styles.kpiValue}>{rejectedVisitors.length}</p>
+              </div>
+            </section>
+
+            {/* Body: table (left) + side panels (right) */}
+            <div className={styles.body}>
+
+              {/* Left column */}
+              <div className={styles.column}>
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Today’s Visitors</h3>
+                    <span className={styles.panelCount}>{todayVisitors.length}</span>
+                  </div>
+                  {todayVisitors.length === 0 ? (
+                    <p className={styles.emptyState}>No visitors scheduled for today.</p>
+                  ) : (
+                    <div className={styles.tableWrap}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Visitor</th>
+                            <th>Purpose of visit</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {todayVisitors.map((visitor, index) => (
+                            <tr key={index}>
+                              <td>
+                                <div className={styles.person}>
+                                  <span className={styles.avatar}>{getInitial(visitor.name)}</span>
+                                  <div>
+                                    <p className={styles.personName}>{visitor.name}</p>
+                                    <p className={styles.personSub}>{visitor.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>{visitor.purposeofvisit}</td>
+                              <td>
+                                <span className={`${styles.statusBadge} ${getStatusClass(visitor.status)}`}>
+                                  {visitor.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
+              </div>
+
+              {/* Right column */}
+              <div className={styles.column}>
+
+                {/* Status breakdown */}
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Today at a Glance</h3>
+                  </div>
+                  <div className={styles.breakdown}>
+                    <div className={styles.breakdownBar}>
+                      <span className={styles.breakdownChecked} style={{ width: pct(checkedIn.length) }} />
+                      <span className={styles.breakdownPending} style={{ width: pct(pendingApprovals.length) }} />
+                      <span className={styles.breakdownRejected} style={{ width: pct(rejectedVisitors.length) }} />
+                    </div>
+                    <ul className={styles.legend}>
+                      <li>
+                        <span className={styles.legendDot} style={{ backgroundColor: '#22a355' }} />
+                        Checked In
+                        <span className={styles.legendValue}>{checkedIn.length}</span>
+                      </li>
+                      <li>
+                        <span className={styles.legendDot} style={{ backgroundColor: '#f59e0b' }} />
+                        Pending
+                        <span className={styles.legendValue}>{pendingApprovals.length}</span>
+                      </li>
+                      <li>
+                        <span className={styles.legendDot} style={{ backgroundColor: '#dc2626' }} />
+                        Rejected
+                        <span className={styles.legendValue}>{rejectedVisitors.length}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </section>
+
+                {/* Pending approvals */}
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Pending Approvals</h3>
+                    <span className={styles.panelCount}>{pendingApprovals.length}</span>
+                  </div>
+                  {pendingApprovals.length === 0 ? (
+                    <p className={styles.emptyState}>No pending check-in requests.</p>
+                  ) : (
+                    pendingApprovals.map((visitor, index) => (
+                      <div key={index} className={styles.listItem}>
+                        <span className={styles.avatar}>{getInitial(visitor.name)}</span>
+                        <div className={styles.listBody}>
+                          <p className={styles.listName}>{visitor.name}</p>
+                          <p className={styles.listMeta}>{visitor.purposeofvisit}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </section>
+
+                {/* Recent activity */}
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Recent Activity</h3>
+                  </div>
+                  {recentActivity.length === 0 ? (
+                    <p className={styles.emptyState}>No recent activity today.</p>
+                  ) : (
+                    <ul className={styles.timeline}>
+                      {recentActivity.map((visitor, index) => (
+                        <li key={index} className={`${styles.timelineItem} ${getDotClass(visitor.status)}`}>
+                          <span className={styles.timelineName}>{visitor.name}</span>
+                          <span className={`${styles.statusBadge} ${getStatusClass(visitor.status)}`}>
+                            {visitor.status}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <footer className={styles.footer}>
+            © 2025 Visitor Management System. All rights reserved.
+          </footer>
+        </main>
       </div>
     </div>
   );

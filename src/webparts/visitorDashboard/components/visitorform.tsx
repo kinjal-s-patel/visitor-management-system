@@ -9,11 +9,16 @@ import {
 } from "@fluentui/react";
 import { useNavigate } from "react-router-dom";
 import { spfi, SPFI, SPFx } from "@pnp/sp";
+import {
+  Home24Regular,
+  PersonAdd24Regular,
+  TextBulletList24Regular,
+  DataBarVertical24Regular,
+} from "@fluentui/react-icons";
 
 interface IVisitorFormPageProps {
   context: any;
 }
-
 const purposeOptions: IDropdownOption[] = [
   { key: "business", text: "Business Meeting" },
   { key: "personal", text: "Personal Meeting" },
@@ -26,6 +31,10 @@ const departmentOptions: IDropdownOption[] = [
   { key: "Recruitment", text: "Recruitment" },
   { key: "Management", text: "Management" },
 ];
+
+// UI-only helper (no business logic)
+const getInitial = (text?: string): string =>
+  (text || "?").trim().charAt(0).toUpperCase();
 
 const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
   const navigate = useNavigate();
@@ -149,188 +158,230 @@ const loadHostOptions = async () => {
     }));
   }, []);
 
+  const userName = context.pageContext.user.displayName;
+
   return (
     <div
       style={{
         width: "100vw",
         height: "100vh",
-        backgroundColor: "#fff",
+        backgroundColor: "#f3f6f9",
         position: "fixed",
         top: 0,
         left: 0,
-        overflow: "auto",
+        overflow: "hidden",
         zIndex: 9999,
       }}
     >
-      <div className={styles.visitorFormPage}>
-        {/* Header */}
-        <header className={styles.dashboardHeader}>
-          <div className={styles.dashboardHeader__left}>
-            <h1 className={styles.dashboardHeader__title}>
-              Visitor Management System
-            </h1>
+      <div className={styles.app}>
+
+        {/* ============ SIDEBAR ============ */}
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}>
+            <span className={styles.brandLogo}>V</span>
+            <p className={styles.brandName}>Visitor Management System</p>
           </div>
-          <div className={styles.dashboardHeader__right}>
-            <span className={styles.dashboardHeader__userName}>
-              Welcome, {context.pageContext.user.displayName}
-            </span>
-          </div>
-        </header>
 
-        {/* Navigation */}
-        <div className={styles.navButtons}>
-          <PrimaryButton text="View Visitor" onClick={() => navigate("/visitorlogs")} />
-          <PrimaryButton text="Reports" onClick={() => navigate("/reports")} />
-          <PrimaryButton text="Dashboard" onClick={() => navigate("/")} />
-        </div>
+          <nav className={styles.nav}>
+            <button className={styles.navItem} onClick={() => navigate("/")}>
+              <span className={styles.navIcon}><Home24Regular /></span>
+              Dashboard
+            </button>
+            <button className={`${styles.navItem} ${styles.navItemActive}`}>
+              <span className={styles.navIcon}><PersonAdd24Regular /></span>
+              Add Visitor
+            </button>
+            <button className={styles.navItem} onClick={() => navigate("/visitorlogs")}>
+              <span className={styles.navIcon}><TextBulletList24Regular /></span>
+              View Visitor
+            </button>
+            <button className={styles.navItem} onClick={() => navigate("/reports")}>
+              <span className={styles.navIcon}><DataBarVertical24Regular /></span>
+              Reports
+            </button>
+          </nav>
 
-        {/* Main Form */}
-        <main className={styles.formContainer}>
-          <h2 className={styles.heading}>Visitor Form</h2>
-          <p className={styles.subheading}>
-            Please fill in the visitor details below
-          </p>
-
-          <div className={styles.formWrapper}>
-            <TextField
-              label="Name"
-               placeholder="Enter visitor name"
-              value={formData.name}
-              onChange={(e, val) => handleChange("name", val || "")}
-              required
-            />
-
-            <TextField
-              label="Contact Number"
-              placeholder="Enter contact number"
-              value={formData.number}
-              onChange={(e, val) => handleChange("number", val || "")}
-              required
-            />
-
-            <TextField
-              label="Email"
-               placeholder="Enter visitor email address"
-              type="email"
-              value={formData.email}
-              onChange={(e, val) => handleChange("email", val || "")}
-              required
-            />
-
-            <Dropdown
-              label="Purpose of Visit"
-                placeholder="Select purpose of visit"
-              options={purposeOptions}
-              selectedKey={formData.purposeofvisit}
-              onChange={(e, option) =>
-                handleChange("purposeofvisit", option?.key.toString() || "")
-              }
-              required
-            />
-
-            
-    <Dropdown
-  label="Host Email"
-  placeholder="Select host"
-  options={hostOptions}
-  selectedKey={formData.hostId}
-  onChange={(e, option) =>
-    setFormData((prev) => ({
-      ...prev,
-      hostId: option?.key.toString() || "",
-      host: option?.text || "",
-    }))
-  }
-  required
-/>
-
-
-            {/* ✅ Host Dropdown */}
-{/* <Dropdown
-  label="Host Email"
-  placeholder="Select or add host"
-  options={[...hostOptions, { key: "add_new", text: "➕ Add host manually" }]}
-  selectedKey={isManualHost ? "add_new" : formData.hostId} // ✅ must match option.key
-  onChange={(e, option) => {
-    if (option?.key === "add_new") {
-      // User wants to add new host manually
-      setIsManualHost(true);
-      setManualHost("");
-      setFormData((prev) => ({
-        ...prev,
-        host: "",
-        hostId: "",
-      }));
-    } else {
-      // User selected from list
-      setIsManualHost(false);
-      setManualHost("");
-      setFormData((prev) => ({
-        ...prev,
-        host: option?.text || "",
-        hostId: option?.key?.toString() || "", // ✅ always string
-      }));
-    }
-  }}
-  required
-/> */}
-{/* 
-{isManualHost && (
-   <TextField label="Enter Host Email"
-    placeholder="Type host email" value={manualHost}
-     onChange={(e, val) => setManualHost(val || "")}
-      required /> 
-      )} */}
-
-            <Dropdown
-              label="Department"
-              placeholder="Select department"
-              options={departmentOptions}
-              selectedKey={formData.Department}
-              onChange={(e, option) =>
-                handleChange("Department", option?.key.toString() || "")
-              }
-              required
-            />
-
-            <TextField
-              label="Visit Date"
-              type="date"
-              value={formData.visitdate}
-              onChange={(e, val) => handleChange("visitdate", val || "")}
-              required
-            />
-
-            <TextField
-              label="In Time"
-              type="time"
-              value={formData.In_x002d_time}
-              onChange={(e, val) => handleChange("In_x002d_time", val || "")}
-              required
-            />
-
-            <h3>Capture Live Photo</h3>
-            <video ref={videoRef} width="320" height="240" autoPlay />
-            <canvas ref={canvasRef} width="320" height="240" style={{ display: "none" }} />
-
-            <PrimaryButton text="Capture Photo" onClick={capturePhoto} />
-
-            {photo && (
-              <div>
-                <h4>Preview:</h4>
-                <img src={photo} alt="Captured" width="320" height="240" />
-              </div>
-            )}
-
-            <div className={styles.buttonGroup}>
-              <PrimaryButton text="Submit" onClick={handleSubmit} />
+          <div className={styles.sidebarUser}>
+            <span className={styles.avatar}>{getInitial(userName)}</span>
+            <div className={styles.sidebarUserText}>
+              <p className={styles.sidebarUserName}>{userName}</p>
+              <p className={styles.sidebarUserRole}>Signed in</p>
             </div>
           </div>
-        </main>
+        </aside>
 
-        <footer className={styles.footer}>
-          © 2025 Visitor Management System. All rights reserved.
-        </footer>
+        {/* ============ MAIN ============ */}
+        <main className={styles.main}>
+
+          {/* Top bar */}
+          <div className={styles.topbar}>
+            <div>
+              <h1 className={styles.pageTitle}>Visitor Form</h1>
+              <p className={styles.pageSubtitle}>
+                Please fill in the visitor details below
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.content}>
+            <div className={styles.formLayout}>
+
+              {/* Left column: form fields */}
+              <div className={styles.column}>
+
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Visitor Information</h3>
+                    <p className={styles.panelHint}>Who is visiting</p>
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <div className={styles.fieldFull}>
+                      <TextField
+                        label="Name"
+                        placeholder="Enter visitor name"
+                        value={formData.name}
+                        onChange={(e, val) => handleChange("name", val || "")}
+                        required
+                      />
+                    </div>
+
+                    <TextField
+                      label="Contact Number"
+                      placeholder="Enter contact number"
+                      value={formData.number}
+                      onChange={(e, val) => handleChange("number", val || "")}
+                      required
+                    />
+
+                    <TextField
+                      label="Email"
+                      placeholder="Enter visitor email address"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e, val) => handleChange("email", val || "")}
+                      required
+                    />
+                  </div>
+                </section>
+
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Visit Details</h3>
+                    <p className={styles.panelHint}>Purpose, host and schedule</p>
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <Dropdown
+                      label="Purpose of Visit"
+                      placeholder="Select purpose of visit"
+                      options={purposeOptions}
+                      selectedKey={formData.purposeofvisit}
+                      onChange={(e, option) =>
+                        handleChange("purposeofvisit", option?.key.toString() || "")
+                      }
+                      required
+                    />
+
+                    <Dropdown
+                      label="Department"
+                      placeholder="Select department"
+                      options={departmentOptions}
+                      selectedKey={formData.Department}
+                      onChange={(e, option) =>
+                        handleChange("Department", option?.key.toString() || "")
+                      }
+                      required
+                    />
+
+                    <div className={styles.fieldFull}>
+                      <Dropdown
+                        label="Host Email"
+                        placeholder="Select host"
+                        options={hostOptions}
+                        selectedKey={formData.hostId}
+                        onChange={(e, option) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            hostId: option?.key.toString() || "",
+                            host: option?.text || "",
+                          }))
+                        }
+                        required
+                      />
+                    </div>
+
+                    <TextField
+                      label="Visit Date"
+                      type="date"
+                      value={formData.visitdate}
+                      onChange={(e, val) => handleChange("visitdate", val || "")}
+                      required
+                    />
+
+                    <TextField
+                      label="In Time"
+                      type="time"
+                      value={formData.In_x002d_time}
+                      onChange={(e, val) => handleChange("In_x002d_time", val || "")}
+                      required
+                    />
+                  </div>
+                </section>
+
+                <div className={styles.actions}>
+                  <PrimaryButton
+                    className={styles.submitBtn}
+                    text="Submit"
+                    onClick={handleSubmit}
+                  />
+                </div>
+              </div>
+
+              {/* Right column: live photo */}
+              <div className={`${styles.column} ${styles.sticky}`}>
+                <section className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <h3 className={styles.panelTitle}>Capture Live Photo</h3>
+                    <p className={styles.panelHint}>Use the camera to take the visitor’s photo</p>
+                  </div>
+                  <div className={styles.photoBody}>
+                    <video
+                      ref={videoRef}
+                      className={styles.video}
+                      width="320"
+                      height="240"
+                      autoPlay
+                    />
+                    <canvas ref={canvasRef} width="320" height="240" style={{ display: "none" }} />
+
+                    <PrimaryButton
+                      className={styles.captureBtn}
+                      text="Capture Photo"
+                      onClick={capturePhoto}
+                    />
+
+                    {photo && (
+                      <div>
+                        <p className={styles.previewLabel}>Preview:</p>
+                        <img
+                          className={styles.preview}
+                          src={photo}
+                          alt="Captured"
+                          width="320"
+                          height="240"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </section>
+              </div>
+
+            </div>
+          </div>
+
+          <footer className={styles.footer}>
+            © 2025 Visitor Management System. All rights reserved.
+          </footer>
+        </main>
       </div>
     </div>
   );

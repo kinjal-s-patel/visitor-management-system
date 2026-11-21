@@ -1,145 +1,438 @@
-.visitorFormPage {
-  font-family: "Segoe UI", sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f7f6; // Soft mint background
-  color: #1f1f1f;
+// ==========================================================
+// Visitor Form – Sidebar layout (matches Dashboard theme)
+// ==========================================================
+
+$ink: #0f2740;
+$primary: #0e7c86;
+$primary-dark: #0a5f67;
+$primary-tint: #e3f3f4;
+$page: #f3f6f9;
+$surface: #ffffff;
+$line: #e2e8ef;
+$field-line: #cbd5e1;
+$text: #1c2b3a;
+$muted: #64748b;
+
+$radius: 12px;
+$shadow: 0 1px 2px rgba(15, 39, 64, 0.06), 0 4px 12px rgba(15, 39, 64, 0.04);
+$sidebar-width: 240px;
+
+// ---------- App shell ---------- //
+.app {
+  display: grid;
+  grid-template-columns: $sidebar-width 1fr;
+  height: 100%;
+  font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color: $text;
+  background-color: $page;
+  -webkit-font-smoothing: antialiased;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 }
 
-.dashboardHeader {
+// ---------- Sidebar ---------- //
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background-color: $ink;
+  color: #c9d6e4;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brandLogo {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: $primary;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 20px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #c9d6e4;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #7fd3da;
+    outline-offset: 2px;
+  }
+}
+
+.navItemActive {
+  background-color: $primary;
+  color: #fff;
+
+  &:hover {
+    background-color: $primary;
+  }
+}
+
+.navIcon {
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.sidebarUser {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: $primary-tint;
+  color: $primary-dark;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarUserText {
+  min-width: 0;
+}
+
+.sidebarUserName {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarUserRole {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #8ea3ba;
+}
+
+// ---------- Main area ---------- //
+.main {
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 32px;
-  background-color: #e1f4f0; // Light mint
-  border-bottom: 1px solid #d0e5e2;
-
-  &__left h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-    color: #1a3b2f;
-  }
-
-  &__title {
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #165a43;
-  }
-
-  &__right {
-    font-size: 16px;
-    color: #444;
-  }
-
-  &__userName {
-    font-weight: 600;
-    color: #198754;
-  }
-}
-
-.navButtons {
-  display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
-  padding: 20px 40px;
-  background-color: #f5f6fa;
+  padding: 20px 32px;
+  background-color: $surface;
+  border-bottom: 1px solid $line;
+}
 
-  button {
-    background-color: #014421 !important; // dark green
-    color: #fff !important;
+.pageTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.pageSubtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: $muted;
+}
+
+.content {
+  flex: 1;
+  padding: 24px 32px 0;
+}
+
+// ---------- Form layout ---------- //
+.formLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+}
+
+.panel {
+  background-color: $surface;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  overflow: hidden;
+}
+
+.panelHeader {
+  padding: 16px 24px;
+  border-bottom: 1px solid $line;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.panelHint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: $muted;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  padding: 24px;
+
+  // Fluent UI field restyling
+  :global(.ms-Label) {
+    font-size: 13px;
     font-weight: 600;
-    border-radius: 6px;
+    color: $text;
   }
 
-  button:hover {
-    background-color: #026b32 !important;
+  :global(.ms-TextField-fieldGroup) {
+    height: 40px;
+    border: 1px solid $field-line;
+    border-radius: 8px;
+    background-color: #fff;
+
+    &::after {
+      border-radius: 8px;
+      border-color: $primary;
+    }
+  }
+
+  :global(.ms-TextField-field) {
+    border-radius: 8px;
+  }
+
+  :global(.ms-Dropdown-title) {
+    height: 40px;
+    line-height: 38px;
+    border: 1px solid $field-line;
+    border-radius: 8px;
+  }
+
+  :global(.ms-Dropdown:focus::after) {
+    border-radius: 8px;
+    border-color: $primary;
   }
 }
 
-.buttonGroup {
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+// ---------- Photo panel ---------- //
+.photoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  background-color: $ink;
+}
+
+.captureBtn {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px !important;
+  background-color: $primary-tint !important;
+  border: 1px solid $primary !important;
+  color: $primary-dark !important;
+  font-weight: 600;
+
+  &:hover {
+    background-color: $primary !important;
+    color: #fff !important;
+  }
+}
+
+.previewLabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: $text;
+}
+
+.preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid $line;
+}
+
+// ---------- Actions ---------- //
+.actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 24px;
-
-  button {
-    background-color: #0078d4 !important;
-    color: #fff !important;
-    font-weight: 600;
-    border-radius: 6px;
-  }
-
-  button:hover {
-    background-color: #005a9e !important;
-  }
+  padding-bottom: 8px;
 }
 
-.formContainer {
-  padding: 32px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  margin: 24px auto; // ⬅ Center horizontally
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  border-top: 4px solid #014421;
-  max-width: 700px; // ⬅ Limit width
-  width: 100%;
-}
-
-.pageContainer {
-  padding: 30px;
-  background-color: #f5f5f5;
-  display: flex;
-  justify-content: center;
-}
-.formCard {
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 30px;
-  max-width: 800px;
-  width: 100%;
-}
-
-.heading {
-  font-size: 24px;
+.submitBtn {
+  min-width: 160px;
+  height: 44px;
+  border-radius: 8px !important;
+  background-color: $primary !important;
+  border: none !important;
+  color: #fff !important;
   font-weight: 600;
-  color: #004d40; // Dark green
-  margin-bottom: 5px;
+
+  &:hover {
+    background-color: $primary-dark !important;
+  }
 }
 
-.subheading {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 20px;
-}
-
-.formWrapper {
-  width: 100%;
-  max-width: 600px;
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  display: grid;
-  gap: 20px;
-}
-
-.formTitle {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  font-size: 24px;
-  color: #333;
-}
-
-.buttonGroup {
-  text-align: center;
-  margin-top: 1rem;
-}
-
+// ---------- Footer ---------- //
 .footer {
+  margin-top: 8px;
+  padding: 20px 32px 24px;
   text-align: center;
-  margin-top: 2rem;
   font-size: 12px;
-  color: #888;
+  color: $muted;
+}
+
+// ---------- Responsive ---------- //
+@media (max-width: 1000px) {
+  .formLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sticky {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 12px;
+    overflow-x: auto;
+  }
+
+  .brand {
+    padding: 0 12px 0 0;
+    border-bottom: none;
+  }
+
+  .brandName,
+  .sidebarUser {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+    margin-top: 0;
+  }
+
+  .navItem {
+    white-space: nowrap;
+    width: auto;
+  }
+
+  .topbar,
+  .content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .fieldGrid {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navItem {
+    transition: none;
+  }
 }

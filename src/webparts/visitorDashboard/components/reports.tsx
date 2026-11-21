@@ -8,6 +8,12 @@ import { saveAs } from 'file-saver';
 import { useNavigate } from 'react-router-dom';
 import * as Papa from 'papaparse';
 import { FaBriefcase, FaBuilding } from "react-icons/fa";
+import {
+  Home24Regular,
+  PersonAdd24Regular,
+  TextBulletList24Regular,
+  DataBarVertical24Regular,
+} from '@fluentui/react-icons';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 export interface IVisitorDashboardProps {
@@ -20,7 +26,6 @@ interface IVisitor {
   name: string;
   host: string;
   email: string;
-  hostname?: { Title: string };
   Department: string;
   purposeofvisit: string;
   status: string;
@@ -28,6 +33,18 @@ interface IVisitor {
   In_x002d_time?: string;
   Outtime?: string;
 }
+
+// ---------- UI-only helpers (no business logic) ---------- //
+const getInitial = (text?: string): string =>
+  (text || '?').trim().charAt(0).toUpperCase();
+
+const getStatusClass = (status?: string): string => {
+  const s = (status || '').toLowerCase().replace(/\s|-/g, '');
+  if (s === 'pending') return styles.statusPending;
+  if (s === 'checkedin') return styles.statusCheckedin;
+  if (s === 'rejected') return styles.statusRejected;
+  return '';
+};
 
 const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp, context }) => {
   const [visitors, setVisitors] = useState<IVisitor[]>([]);
@@ -61,14 +78,12 @@ const VisitorReportPage: React.FC<IVisitorDashboardProps> = ({ sp, context }) =>
           "host",
           "purposeofvisit",
           "email",
-          "hostname/Title",
           "Department",
           "In_x002d_time",
           "Outtime",
           "status",
           "visitdate"
         )
-        .expand("hostname")
         .orderBy("Id", false)();
 
       setVisitors(items);
@@ -169,104 +184,199 @@ const getCountByStatus = (status: string) => {
     document.head.appendChild(style);
   }, []);
 
+  const userName = context.pageContext.user.displayName;
+
+  // Presentational range text for the pagination bar
+  const rangeStart = filtered.length === 0 ? 0 : indexOfFirstRecord + 1;
+  const rangeEnd = Math.min(indexOfLastRecord, filtered.length);
+
   return (
-    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'auto', backgroundColor: '#fff', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
-      <div className={styles.visitorReportWrapper}>
-        {/* HEADER */}
-        <header className={styles.dashboardHeader}>
-          <div className={styles.dashboardHeader__left}>
-            <h1 className={styles.dashboardHeader__title}>Visitor Management System</h1>
-          </div>
- <span className={styles.dashboardHeader__userName}>
-        Welcome, {context.pageContext.user.displayName}
-      </span>
+    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden', backgroundColor: '#f3f6f9', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
+      <div className={styles.app}>
 
-        </header>
-
-        {/* NAVIGATION */}
-        <div className={styles.navButtons}>
-          <button className={styles.btn} onClick={() => navigate('/visitorform')}>Add Visitor</button>
-          <button className={styles.btn} onClick={() => navigate('/visitorlogs')}>View Visitor</button>
- <button className={styles.btn} onClick={() => navigate('/')}>
-  Dashboard
-</button>
-
-
-        </div>
-
-        {/* REPORT CONTENT */}
-        <div className={styles.reportPage}>
-          <h2>Visitor Reports</h2>
-          <p>Analyze and export your visitor data</p>
-
-          {/* Filters */}
-          <div className={styles.filters}>
- <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-  <option value="All">All Statuses</option>
-  <option value="Pending">Pending</option>
-    <option value="Rejected">Rejected</option>
-  <option value="Checked In">Checked In</option>
-</select>
-
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-
-            <button onClick={exportCSV}>Export CSV</button>
+        {/* ============ SIDEBAR ============ */}
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}>
+            <span className={styles.brandLogo}>V</span>
+            <p className={styles.brandName}>Visitor Management System</p>
           </div>
 
-          {/* Stats */}
-          <div className={styles.stats}>
-            <div className={styles.card}><strong>Total Visitors</strong><span>{visitors.length}</span></div>
-            <div className={styles.card}><strong>Pending</strong><span>{getCountByStatus("Pending")}</span></div>
-            <div className={styles.card}><strong>Checked In</strong>  <span>{getCountByStatus("Checked In")}</span></div>
-            <div className={styles.card}><strong>Rejected</strong>  <span>{getCountByStatus("Rejected")}</span></div>
-           
+          <nav className={styles.nav}>
+            <button className={styles.navItem} onClick={() => navigate('/')}>
+              <span className={styles.navIcon}><Home24Regular /></span>
+              Dashboard
+            </button>
+            <button className={styles.navItem} onClick={() => navigate('/visitorform')}>
+              <span className={styles.navIcon}><PersonAdd24Regular /></span>
+              Add Visitor
+            </button>
+            <button className={styles.navItem} onClick={() => navigate('/visitorlogs')}>
+              <span className={styles.navIcon}><TextBulletList24Regular /></span>
+              View Visitor
+            </button>
+            <button className={`${styles.navItem} ${styles.navItemActive}`}>
+              <span className={styles.navIcon}><DataBarVertical24Regular /></span>
+              Reports
+            </button>
+          </nav>
+
+          <div className={styles.sidebarUser}>
+            <span className={styles.avatar}>{getInitial(userName)}</span>
+            <div className={styles.sidebarUserText}>
+              <p className={styles.sidebarUserName}>{userName}</p>
+              <p className={styles.sidebarUserRole}>Signed in</p>
+            </div>
+          </div>
+        </aside>
+
+        {/* ============ MAIN ============ */}
+        <main className={styles.main}>
+
+          {/* Top bar */}
+          <div className={styles.topbar}>
+            <div>
+              <h1 className={styles.pageTitle}>Visitor Reports</h1>
+              <p className={styles.pageSubtitle}>Analyze and export your visitor data</p>
+            </div>
+            <button className={styles.btnPrimary} onClick={exportCSV}>
+              Export CSV
+            </button>
           </div>
 
-          {/* Table */}
-          <table className={styles.reportTable}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Host</th>
-                <th>Status</th>
-                <th>Purpose</th>
-                <th>Department</th>
-                <th>Date</th>
-                <th>Check-In</th>
-                <th>Check-Out</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentRecords.map((visitor) => (
-                <tr key={visitor.Id}>
-                  <td>{visitor.name}</td>
-                  <td>{visitor.email}</td>
-                  <td>{visitor.host|| 'N/A'}</td>
-                  <td>{visitor.status}</td>
-                  <td><FaBriefcase /> {visitor.purposeofvisit}</td>
-                  <td><FaBuilding /> {visitor.Department}</td>
-                  <td>{visitor.visitdate}</td>
-                  <td>{visitor.In_x002d_time || "-"}</td>
-                  <td>{visitor.Outtime || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          <div className={styles.content}>
 
-        {/* Pagination */}
-        <div className={styles.pagination}>
-          <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>⬅ Previous</button>
-          <span> Page {currentPage} of {totalPages} </span>
-          <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>Next ➡</button>
-        </div>
+            {/* Filters */}
+            <section className={styles.filters}>
+              <h3 className={styles.filtersTitle}>Filters</h3>
 
-        {/* Footer */}
-        <footer className={styles.footer}>
-          © 2025 Visitor Management System. All rights reserved.
-        </footer>
+              <div className={styles.field}>
+                <label>Status</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="All">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Checked In">Checked In</option>
+                </select>
+              </div>
+
+              <div className={styles.field}>
+                <label>From date</label>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              </div>
+
+              <div className={styles.field}>
+                <label>To date</label>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+            </section>
+
+            {/* Stats */}
+            <section className={styles.kpiRow}>
+              <div className={`${styles.kpi} ${styles.kpiTotal}`}>
+                <strong className={styles.kpiLabel}>Total Visitors</strong>
+                <span className={styles.kpiValue}>{visitors.length}</span>
+              </div>
+              <div className={`${styles.kpi} ${styles.kpiPending}`}>
+                <strong className={styles.kpiLabel}>Pending</strong>
+                <span className={styles.kpiValue}>{getCountByStatus("Pending")}</span>
+              </div>
+              <div className={`${styles.kpi} ${styles.kpiChecked}`}>
+                <strong className={styles.kpiLabel}>Checked In</strong>
+                <span className={styles.kpiValue}>{getCountByStatus("Checked In")}</span>
+              </div>
+              <div className={`${styles.kpi} ${styles.kpiRejected}`}>
+                <strong className={styles.kpiLabel}>Rejected</strong>
+                <span className={styles.kpiValue}>{getCountByStatus("Rejected")}</span>
+              </div>
+            </section>
+
+            {/* Table */}
+            <section className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h3 className={styles.panelTitle}>Report Results</h3>
+                <span className={styles.panelCount}>{filtered.length}</span>
+              </div>
+
+              <div className={styles.tableWrap}>
+                <table className={styles.reportTable}>
+                  <thead>
+                    <tr>
+                      <th>Visitor</th>
+                      <th>Host</th>
+                      <th>Status</th>
+                      <th>Purpose</th>
+                      <th>Department</th>
+                      <th>Date</th>
+                      <th>Check-In</th>
+                      <th>Check-Out</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentRecords.length > 0 ? (
+                      currentRecords.map((visitor) => (
+                        <tr key={visitor.Id}>
+                          <td>
+                            <div className={styles.person}>
+                              <span className={styles.avatar}>{getInitial(visitor.name)}</span>
+                              <div>
+                                <p className={styles.personName}>{visitor.name}</p>
+                                <p className={styles.personSub}>{visitor.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{visitor.host || 'N/A'}</td>
+                          <td>
+                            <span className={`${styles.statusBadge} ${getStatusClass(visitor.status)}`}>
+                              {visitor.status}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={styles.iconText}>
+                              <span className={styles.iconBadge}><FaBriefcase /></span>
+                              {visitor.purposeofvisit}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={styles.iconText}>
+                              <span className={styles.iconBadge}><FaBuilding /></span>
+                              {visitor.Department}
+                            </span>
+                          </td>
+                          <td>{visitor.visitdate}</td>
+                          <td>{visitor.In_x002d_time || "-"}</td>
+                          <td>{visitor.Outtime || "-"}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={8} className={styles.emptyCell}>
+                          No records match the selected filters.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div className={styles.pagination}>
+                <span className={styles.paginationInfo}>
+                  Showing {rangeStart}–{rangeEnd} of {filtered.length}
+                </span>
+                <div className={styles.paginationControls}>
+                  <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>← Previous</button>
+                  <span> Page {currentPage} of {totalPages} </span>
+                  <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>Next →</button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Footer */}
+          <footer className={styles.footer}>
+            © 2025 Visitor Management System. All rights reserved.
+          </footer>
+        </main>
       </div>
     </div>
   );

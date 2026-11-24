@@ -9,14 +9,9 @@ import {
 } from "@fluentui/react";
 import { useNavigate } from "react-router-dom";
 import { spfi, SPFI, SPFx } from "@pnp/sp";
-import {
-  Home24Regular,
-  PersonAdd24Regular,
-  TextBulletList24Regular,
-  DataBarVertical24Regular,
-} from "@fluentui/react-icons";
+import SharedSidebar, { IAppLayoutProps } from './SharedSidebar';
 
-interface IVisitorFormPageProps {
+interface IVisitorFormPageProps extends IAppLayoutProps {
   context: any;
 }
 const purposeOptions: IDropdownOption[] = [
@@ -32,11 +27,11 @@ const departmentOptions: IDropdownOption[] = [
   { key: "Management", text: "Management" },
 ];
 
-// UI-only helper (no business logic)
-const getInitial = (text?: string): string =>
-  (text || "?").trim().charAt(0).toUpperCase();
-
-const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({ context }) => {
+const VisitorFormPage: React.FC<IVisitorFormPageProps> = ({
+  context,
+  sidebarCollapsed,
+  onToggleSidebar,
+}) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -173,42 +168,13 @@ const loadHostOptions = async () => {
         zIndex: 9999,
       }}
     >
-      <div className={styles.app}>
-
-        {/* ============ SIDEBAR ============ */}
-        <aside className={styles.sidebar}>
-          <div className={styles.brand}>
-            <span className={styles.brandLogo}>V</span>
-            <p className={styles.brandName}>Visitor Management System</p>
-          </div>
-
-          <nav className={styles.nav}>
-            <button className={styles.navItem} onClick={() => navigate("/")}>
-              <span className={styles.navIcon}><Home24Regular /></span>
-              Dashboard
-            </button>
-            <button className={`${styles.navItem} ${styles.navItemActive}`}>
-              <span className={styles.navIcon}><PersonAdd24Regular /></span>
-              Add Visitor
-            </button>
-            <button className={styles.navItem} onClick={() => navigate("/visitorlogs")}>
-              <span className={styles.navIcon}><TextBulletList24Regular /></span>
-              View Visitor
-            </button>
-            <button className={styles.navItem} onClick={() => navigate("/reports")}>
-              <span className={styles.navIcon}><DataBarVertical24Regular /></span>
-              Reports
-            </button>
-          </nav>
-
-          <div className={styles.sidebarUser}>
-            <span className={styles.avatar}>{getInitial(userName)}</span>
-            <div className={styles.sidebarUserText}>
-              <p className={styles.sidebarUserName}>{userName}</p>
-              <p className={styles.sidebarUserRole}>Signed in</p>
-            </div>
-          </div>
-        </aside>
+      <div className={`${styles.app} ${sidebarCollapsed ? styles.appCollapsed : ''}`}>
+        <SharedSidebar
+          activePage="visitorform"
+          userName={userName}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={onToggleSidebar}
+        />
 
         {/* ============ MAIN ============ */}
         <main className={styles.main}>

@@ -29,8 +29,9 @@ $sidebar-width: 240px;
 // ---------- App shell ---------- //
 .app {
   display: grid;
-  grid-template-columns: $sidebar-width 1fr;
+  grid-template-columns: $sidebar-width minmax(0, 1fr);
   height: 100%;
+  transition: grid-template-columns 0.2s ease;
   font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
   color: $text;
   background-color: $page;
@@ -41,6 +42,10 @@ $sidebar-width: 240px;
   *::after {
     box-sizing: border-box;
   }
+}
+
+.appCollapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
 }
 
 // ---------- Sidebar ---------- //

@@ -9,10 +9,6 @@ import {
   Alert24Regular,
   CheckmarkCircle24Regular,
   DismissCircle24Regular,
-  Home24Regular,
-  PersonAdd24Regular,
-  TextBulletList24Regular,
-  DataBarVertical24Regular,
 } from '@fluentui/react-icons';
 
 import "@pnp/sp/webs";
@@ -24,6 +20,7 @@ import moment from "moment";
 import styles from "./VisitorDashboard.module.scss";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { useNavigate } from "react-router-dom";
+import SharedSidebar, { IAppLayoutProps } from './SharedSidebar';
 
 
 interface IVisitorItem {
@@ -40,7 +37,7 @@ interface IVisitorItem {
   Created?: string;
 }
 
-export interface IVisitorDashboardProps {
+export interface IVisitorDashboardProps extends IAppLayoutProps {
   description: string;
   isDarkTheme: boolean;
   context: WebPartContext;
@@ -69,7 +66,11 @@ const getDotClass = (status?: string): string => {
   return '';
 };
 
-const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
+const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({
+  context,
+  sidebarCollapsed,
+  onToggleSidebar,
+}) => {
   const [loading, setLoading] = React.useState(true);
   const [todayVisitors, setTodayVisitors] = React.useState<IVisitorItem[]>([]);
   const [pendingApprovals, setPendingApprovals] = React.useState<IVisitorItem[]>([]);
@@ -208,42 +209,13 @@ const VisitorDashboard: React.FC<IVisitorDashboardProps> = ({ context }) => {
 
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden', backgroundColor: '#f3f6f9', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
-      <div className={styles.app}>
-
-        {/* ============ SIDEBAR ============ */}
-        <aside className={styles.sidebar}>
-          <div className={styles.brand}>
-            <span className={styles.brandLogo}>V</span>
-            <p className={styles.brandName}>Visitor Management System</p>
-          </div>
-
-          <nav className={styles.nav}>
-            <button className={`${styles.navItem} ${styles.navItemActive}`}>
-              <span className={styles.navIcon}><Home24Regular /></span>
-              Dashboard
-            </button>
-            <button className={styles.navItem} onClick={() => navigate("/visitorform")}>
-              <span className={styles.navIcon}><PersonAdd24Regular /></span>
-              Add Visitor
-            </button>
-            <button className={styles.navItem} onClick={() => navigate("/visitorlogs")}>
-              <span className={styles.navIcon}><TextBulletList24Regular /></span>
-              View Visitor
-            </button>
-            <button className={styles.navItem} onClick={() => navigate("/reports")}>
-              <span className={styles.navIcon}><DataBarVertical24Regular /></span>
-              Reports
-            </button>
-          </nav>
-
-          <div className={styles.sidebarUser}>
-            <span className={styles.avatar}>{getInitial(userName)}</span>
-            <div className={styles.sidebarUserText}>
-              <p className={styles.sidebarUserName}>{userName}</p>
-              <p className={styles.sidebarUserRole}>Signed in</p>
-            </div>
-          </div>
-        </aside>
+      <div className={`${styles.app} ${sidebarCollapsed ? styles.appCollapsed : ''}`}>
+        <SharedSidebar
+          activePage="dashboard"
+          userName={userName}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={onToggleSidebar}
+        />
 
         {/* ============ MAIN ============ */}
         <main className={styles.main}>
